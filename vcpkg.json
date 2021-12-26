@@ -1,0 +1,21 @@
+{
+    "name":  "maxsudetectionmeter",
+    "version-string":  "1.0.0",
+    "description":  "",
+    "license":  "MIT",
+    "dependencies":  [
+                         {
+                             "name":  "imgui",
+                             "features":  [
+                                              "dx11-binding",
+                                              "win32-binding"
+                                          ]
+                         },
+                         "spdlog"
+                     ],
+    "features":  {
+                     "mo2-install":  {
+                                         "description":  "Detection Meter"
+                                     }
+                 }
+}
