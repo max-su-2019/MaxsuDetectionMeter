@@ -1,0 +1,2 @@
+# MaxsuDetectionMeter
+A Skse plugin.
