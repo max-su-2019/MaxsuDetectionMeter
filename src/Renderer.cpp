@@ -59,7 +59,7 @@ namespace MaxsuDetectionMeter
         return true;
     }
 
-    static void ImageRotated(ImTextureID tex_id, ImVec2 center, ImVec2 size, float angle,std::int32_t alpha = 255, float uvs_height = 1.f)
+    static void ImageRotated(ImTextureID tex_id, ImVec2 center, ImVec2 size, float angle,std::int32_t alpha = 255, float uvs_width = 1.f, float uvs_height = 1.f)
     {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -67,10 +67,11 @@ namespace MaxsuDetectionMeter
         float cos_a = cosf(angle);
         float sin_a = sinf(angle);
 
-        center.y -= 0.5f * size.y *(1 - uvs_height) * cos_a;
+        center.y -= 0.5f * size.y * (1 - uvs_height) * cos_a;
         center.x += 0.5f * size.y * (1 - uvs_height) * sin_a;
 
         size.y = size.y * uvs_height;
+        size.x = size.x * uvs_width;
         
         ImVec2 pos[4] =
         {
@@ -82,10 +83,10 @@ namespace MaxsuDetectionMeter
 
         ImVec2 uvs[4] =
         {
-            ImVec2(0.0f, 0.0f),
-            ImVec2(1.0f, 0.0f),
-            ImVec2(1.0f, uvs_height),
-            ImVec2(0.0f,uvs_height)
+            ImVec2(0.5f * (1 - uvs_width), 0.0f),
+            ImVec2(0.5f * (1 + uvs_width), 0.0f),
+            ImVec2(0.5f * (1 + uvs_width), uvs_height),
+            ImVec2(0.5f * (1 - uvs_width), uvs_height)
         };
         
         ImU32 colour = IM_COL32(255, 255, 255, alpha);
@@ -196,7 +197,7 @@ namespace MaxsuDetectionMeter
 
         filling = std::clamp(filling, 0.f, 100.f);
 
-        ImageRotated((void*)meterNonHostile.my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterNonHostile.my_image_width, meterNonHostile.my_image_height), angle, meter_alpha, filling);
+        ImageRotated((void*)meterNonHostile.my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterNonHostile.my_image_width, meterNonHostile.my_image_height), angle, meter_alpha, 1.0, filling);
         
         ImGui::End();
 	}
