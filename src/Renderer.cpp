@@ -121,20 +121,50 @@ namespace MaxsuDetectionMeter
 
         if (!target || !cameraRoot || !playerChar)
             return;
-        
-        static std::int32_t alpha = 0;
 
-        if (!target->HasLOS(playerChar)) {
-            alpha -= ImGui::GetIO().DeltaTime * 200;
+        auto GetDetectionLevel = [](RE::Actor* a_owner, RE::Actor* a_target) -> int32_t {
+            int32_t detectionLevel = a_owner->RequestDetectionLevel(a_target, RE::DETECTION_PRIORITY::kNormal);
+            if (detectionLevel < 0) {
+                detectionLevel += 100;
+                return detectionLevel = min(max(detectionLevel, 0), 100);
+            }
+            else
+                return 100;
+        };
+
+        static bool start = false;
+
+        auto detectionLevel = GetDetectionLevel(target, playerChar);
+        if (!start && target->HasLOS(playerChar) && detectionLevel > 20)
+            start = true;
+        if (detectionLevel < 20)
+            start = false;
+
+        static std::int32_t frame_alpha = 0;
+        start ? frame_alpha += ImGui::GetIO().DeltaTime * 155.f : frame_alpha -= ImGui::GetIO().DeltaTime * 155.f;
+        frame_alpha = std::clamp(frame_alpha, 0, 255);
+
+        static std::int32_t meter_alpha = 0;
+
+        if (detectionLevel < 100) {
+            start ? meter_alpha += ImGui::GetIO().DeltaTime * 155.f : meter_alpha -= ImGui::GetIO().DeltaTime * 155.f;
+            meter_alpha = std::clamp(frame_alpha, 0, 255);
         }
-        else
-            alpha += ImGui::GetIO().DeltaTime * 200;
+        else {
+            static bool fadeIn = false;
 
-        alpha = std::clamp(alpha, 0, 255);
+            if (meter_alpha >= 255) {
+                fadeIn = false;
+            }
+            else if (meter_alpha <= 0) {
+                fadeIn = true;
+            }
+
+            fadeIn ? meter_alpha += ImGui::GetIO().DeltaTime * 400.f : meter_alpha -= ImGui::GetIO().DeltaTime * 400.f;
+        }
 
 
         static constexpr ImGuiWindowFlags windowFlag = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
-
         RECT screenRect;
         IM_ASSERT(GetWindowRect(DKU_G_TARGETHWND, &screenRect));
         ImGui::SetNextWindowSize(ImVec2(std::abs(screenRect.right), std::abs(screenRect.bottom)));
@@ -155,20 +185,8 @@ namespace MaxsuDetectionMeter
 
         ImGui::Begin("Maxsu_DetectionMeter",nullptr, windowFlag);
 
-        ImageRotated((void*)meterFrame.my_texture, centerPos + ImVec2(offsetX, offsetY),ImVec2(meterFrame.my_image_width, meterFrame.my_image_height), angle, alpha);
+        ImageRotated((void*)meterFrame.my_texture, centerPos + ImVec2(offsetX, offsetY),ImVec2(meterFrame.my_image_width, meterFrame.my_image_height), angle, frame_alpha);
 
-        auto GetDetectionLevel = [](RE::Actor* a_owner, RE::Actor* a_target) -> int32_t  {
-            int32_t detectionLevel = a_owner->RequestDetectionLevel(a_target, RE::DETECTION_PRIORITY::kNormal);
-            if (detectionLevel < 0) {
-                detectionLevel += 100;
-                return detectionLevel = min(max(detectionLevel, 0), 100);
-            }
-            else
-                return 100;
-        };
-
-        auto detectionLevel = GetDetectionLevel(target, playerChar);
-        
         static float filling = 0.f;
 
         if (filling < detectionLevel / 100.f)
@@ -178,7 +196,7 @@ namespace MaxsuDetectionMeter
 
         filling = std::clamp(filling, 0.f, 100.f);
 
-        ImageRotated((void*)meterNonHostile.my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterNonHostile.my_image_width, meterNonHostile.my_image_height), angle, alpha, filling);
+        ImageRotated((void*)meterNonHostile.my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterNonHostile.my_image_width, meterNonHostile.my_image_height), angle, meter_alpha, filling);
         
         ImGui::End();
 	}
