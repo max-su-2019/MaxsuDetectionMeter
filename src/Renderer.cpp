@@ -59,7 +59,7 @@ namespace MaxsuDetectionMeter
         return true;
     }
 
-    static void ImageRotated(ImTextureID tex_id, ImVec2 center, ImVec2 size, float angle, float uvs_height = 1.f)
+    static void ImageRotated(ImTextureID tex_id, ImVec2 center, ImVec2 size, float angle,std::int32_t alpha = 255, float uvs_height = 1.f)
     {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -87,8 +87,10 @@ namespace MaxsuDetectionMeter
             ImVec2(1.0f, uvs_height),
             ImVec2(0.0f,uvs_height)
         };
+        
+        ImU32 colour = IM_COL32(255, 255, 255, alpha);
 
-        draw_list->AddImageQuad(tex_id, pos[0], pos[1], pos[2], pos[3], uvs[0], uvs[1], uvs[2], uvs[3]);
+        draw_list->AddImageQuad(tex_id, pos[0], pos[1], pos[2], pos[3], uvs[0], uvs[1], uvs[2], uvs[3], colour);
     }
    
     struct ImageSet
@@ -102,6 +104,14 @@ namespace MaxsuDetectionMeter
 
 	void Renderer::DrawMeters()
 	{
+        if (GetActiveWindow() != DKU_G_TARGETHWND)
+            return;
+
+        auto UI = RE::UI::GetSingleton();
+
+        if (!UI || UI->GameIsPaused() || !UI->IsCursorHiddenWhenTopmost())
+            return;
+
         auto camera = RE::PlayerCamera::GetSingleton();
         auto cameraRoot = camera ? camera->cameraRoot : nullptr;
 
@@ -112,14 +122,21 @@ namespace MaxsuDetectionMeter
         if (!target || !cameraRoot || !playerChar)
             return;
         
+        static std::int32_t alpha = 0;
 
-        if (!RE::UI::GetSingleton() || RE::UI::GetSingleton()->IsMenuOpen(RE::InterfaceStrings::GetSingleton()->console))
-            return;
+        if (!target->HasLOS(playerChar)) {
+            alpha -= ImGui::GetIO().DeltaTime * 200;
+        }
+        else
+            alpha += ImGui::GetIO().DeltaTime * 200;
+
+        alpha = std::clamp(alpha, 0, 255);
+
 
         static constexpr ImGuiWindowFlags windowFlag = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
 
         RECT screenRect;
-        IM_ASSERT(GetWindowRect(DKU_G(TargetWindow), &screenRect));
+        IM_ASSERT(GetWindowRect(DKU_G_TARGETHWND, &screenRect));
         ImGui::SetNextWindowSize(ImVec2(std::abs(screenRect.right), std::abs(screenRect.bottom)));
         ImGui::SetNextWindowPos(ImVec2(screenRect.left, screenRect.top));
 
@@ -138,7 +155,7 @@ namespace MaxsuDetectionMeter
 
         ImGui::Begin("Maxsu_DetectionMeter",nullptr, windowFlag);
 
-        ImageRotated((void*)meterFrame.my_texture, centerPos + ImVec2(offsetX, offsetY),ImVec2(meterFrame.my_image_width, meterFrame.my_image_height), angle);
+        ImageRotated((void*)meterFrame.my_texture, centerPos + ImVec2(offsetX, offsetY),ImVec2(meterFrame.my_image_width, meterFrame.my_image_height), angle, alpha);
 
         auto GetDetectionLevel = [](RE::Actor* a_owner, RE::Actor* a_target) -> int32_t  {
             int32_t detectionLevel = a_owner->RequestDetectionLevel(a_target, RE::DETECTION_PRIORITY::kNormal);
@@ -150,9 +167,10 @@ namespace MaxsuDetectionMeter
                 return 100;
         };
 
-        static float filling = 0.f;
         auto detectionLevel = GetDetectionLevel(target, playerChar);
         
+        static float filling = 0.f;
+
         if (filling < detectionLevel / 100.f)
             filling += ImGui::GetIO().DeltaTime * 0.25f;
         else if(filling > detectionLevel / 100.f)
@@ -160,7 +178,7 @@ namespace MaxsuDetectionMeter
 
         filling = std::clamp(filling, 0.f, 100.f);
 
-        ImageRotated((void*)meterNonHostile.my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterNonHostile.my_image_width, meterNonHostile.my_image_height), angle, filling);
+        ImageRotated((void*)meterNonHostile.my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterNonHostile.my_image_width, meterNonHostile.my_image_height), angle, alpha, filling);
         
         ImGui::End();
 	}
@@ -182,7 +200,8 @@ namespace MaxsuDetectionMeter
 
     bool Renderer::Install()
     {
-        DKUtil::GUI::InitGUI(); //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
+        DKUtil::GUI::InitD3D();     //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
+        DKUtil::GUI::InitImGui();    //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
 
         INFO("GUI Init!"sv);
 
