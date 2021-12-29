@@ -156,8 +156,8 @@ namespace MaxsuDetectionMeter
             else if (meter_alpha <= 0) {
                 fadeIn = true;
             }
-
-            fadeIn ? meter_alpha += ImGui::GetIO().DeltaTime * 400.f : meter_alpha -= ImGui::GetIO().DeltaTime * 400.f;
+            float fadeValue = ImGui::GetIO().DeltaTime * 400.f;
+            fadeIn ? meter_alpha += fadeValue : meter_alpha -= fadeValue;
         }
 
 
@@ -185,13 +185,18 @@ namespace MaxsuDetectionMeter
         ImageRotated((void*)meterFrame.my_texture, centerPos + ImVec2(offsetX, offsetY),ImVec2(meterFrame.my_image_width, meterFrame.my_image_height), angle, frame_alpha);
 
         static float filling = 0.f;
+        float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(detectionLevel / 100.f - filling), 0.25f, 0.75f);
 
-        if (filling < detectionLevel / 100.f)
-            filling += ImGui::GetIO().DeltaTime * 0.25f;
-        else if(filling > detectionLevel / 100.f)
-            filling -= ImGui::GetIO().DeltaTime * 0.25f;
+        if (!start && filling > 0.f)
+            filling -= fillingDelta;
+        else{
+            if (filling < detectionLevel / 100.f)
+                filling += fillingDelta;
+            else if (filling > detectionLevel / 100.f)
+                filling -= fillingDelta;
 
-        filling = std::clamp(filling, 0.f, 1.f);
+            filling = std::clamp(filling, 0.f, 1.f);
+        }
 
         ImageRotated((void*)meterNonHostile.my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterNonHostile.my_image_width, meterNonHostile.my_image_height), angle, meter_alpha, filling);
         
