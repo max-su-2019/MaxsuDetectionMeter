@@ -169,7 +169,7 @@ namespace MaxsuDetectionMeter
                     filling = info->filling.GetCurrentFilling() - fillingDelta;
             }
             else
-                filling = info->filling.GetCurrentFilling();
+                filling = info->filling.GetTargetFilling();
             
             filling = std::clamp(filling, 0.f, 1.f);
             info->filling.SetCurrentFilling(filling);
