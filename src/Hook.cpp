@@ -27,17 +27,17 @@ namespace MaxsuDetectionMeter
 
 			auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, a_target->GetPosition());
 			auto const angle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
-				
+
 			if (!meterHandler->meterArr.count(ownerID) && level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) {
-				auto meterObj = std::make_shared<MeterObj>(MeterObj(angle));
-				meterHandler->meterArr.emplace(MeterPair(ownerID, meterObj));
+				auto meterObj = std::make_shared<MeterObj>(angle);
+				meterHandler->meterArr.emplace(ownerID, meterObj);
 				logger::debug("Add a Meter ID : {:x}", ownerID);
 			}
 
 			auto it = meterHandler->meterArr.find(ownerID);
 			if (it != meterHandler->meterArr.end()) {
 				logger::debug("Find a Meter ID: {:x}", it->first);
-				if (it->second && it->second->Update(a_owner, level, angle))
+				if (it->second.load() && it->second.load()->Update(a_owner, level, angle))
 					logger::debug("Update Meter Successfully!");
 				else {
 					meterHandler->meterArr.erase(it);

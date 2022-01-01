@@ -1,5 +1,5 @@
 #include "Renderer.h"
-#include "Events.h"
+#include "DataHandler.h"
 
 #include "DKUTil/GUI.hpp"
 
@@ -97,7 +97,12 @@ namespace MaxsuDetectionMeter
         ID3D11ShaderResourceView* my_texture = nullptr;
     };
 
-    static ImageSet meterFrame, meterNonHostile;
+    static ImageSet meterset[MeterType::kTotal];
+    
+    static bool DrawSingleMeter(MeterPair a_meterPair)
+    {
+        
+    }
 
 	void Renderer::DrawMeters()
 	{
@@ -108,6 +113,8 @@ namespace MaxsuDetectionMeter
 
         if (!UI || UI->GameIsPaused() || !UI->IsCursorHiddenWhenTopmost())
             return;
+
+        auto meterHandler = MeterHandler::GetSingleton();
 
         auto camera = RE::PlayerCamera::GetSingleton();
         auto cameraRoot = camera ? camera->cameraRoot : nullptr;
@@ -182,7 +189,7 @@ namespace MaxsuDetectionMeter
 
         ImGui::Begin("Maxsu_DetectionMeter",nullptr, windowFlag);
 
-        ImageRotated((void*)meterFrame.my_texture, centerPos + ImVec2(offsetX, offsetY),ImVec2(meterFrame.my_image_width, meterFrame.my_image_height), angle, frame_alpha);
+        ImageRotated((void*)meterset[MeterType::kFrame].my_texture, centerPos + ImVec2(offsetX, offsetY),ImVec2(meterset[MeterType::kFrame].my_image_width, meterset[MeterType::kFrame].my_image_height), angle, frame_alpha);
 
         static float filling = 0.f;
         float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(detectionLevel / 100.f - filling), 0.25f, 0.75f);
@@ -198,7 +205,7 @@ namespace MaxsuDetectionMeter
             filling = std::clamp(filling, 0.f, 1.f);
         }
 
-        ImageRotated((void*)meterNonHostile.my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterNonHostile.my_image_width, meterNonHostile.my_image_height), angle, meter_alpha, filling);
+        ImageRotated((void*)meterset[MeterType::kNormal].my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[MeterType::kNormal].my_image_width, meterset[MeterType::kNormal].my_image_height), angle, meter_alpha, filling);
         
         ImGui::End();
 	}
@@ -207,11 +214,10 @@ namespace MaxsuDetectionMeter
     {
         if (msg->type == SKSE::MessagingInterface::kDataLoaded)
         {
-            
-            bool ret1 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_NonHostile.png", &meterNonHostile.my_texture, meterNonHostile.my_image_width, meterNonHostile.my_image_height);
+            bool ret1 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_NonHostile.png", &meterset[MeterType::kNormal].my_texture, meterset[MeterType::kNormal].my_image_width, meterset[MeterType::kNormal].my_image_height);
             IM_ASSERT(ret1);
 
-            bool ret2 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_Frame.png", &meterFrame.my_texture, meterFrame.my_image_width, meterFrame.my_image_height);
+            bool ret2 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_Frame.png", &meterset[MeterType::kFrame].my_texture, meterset[MeterType::kFrame].my_image_width, meterset[MeterType::kFrame].my_image_height);
             IM_ASSERT(ret2);
 
             DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));

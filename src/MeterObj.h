@@ -92,11 +92,10 @@ namespace MaxsuDetectionMeter
 	{
 	public:
 
-		MeterObj(float a_angle) 
+		MeterObj(float a_angle) : headingAngle(a_angle)
 		{
-			headingAngle = a_angle; 
-			infos[MeterType::kFrame] = std::make_shared<FrameMeterInfo>(FrameMeterInfo());
-			infos[MeterType::kNormal] = std::make_shared<NormalMeterInfo>(NormalMeterInfo());
+			infos[MeterType::kFrame] = std::make_shared<FrameMeterInfo>();
+			infos[MeterType::kNormal] = std::make_shared<NormalMeterInfo>();
 		}
 
 		bool Update(RE::Actor* a_owner, std::int32_t a_level, float a_angle)
@@ -110,22 +109,26 @@ namespace MaxsuDetectionMeter
 				if (!infos[type])
 					return false;
 
-				switch (type)
-				{
-				case MeterType::kFrame: {
-					FrameMeterInfo* meter = dynamic_cast<FrameMeterInfo*>(infos[type].get());
-					return meter ? meter->Update(a_owner, a_level) : false;
-				}
+				switch (type){
+					case MeterType::kFrame: {
+						FrameMeterInfo* meter = dynamic_cast<FrameMeterInfo*>(infos[type].get());
+						if (meter->Update(a_owner, a_level))
+							continue;
+						else
+							return false;
+					}
 
-				case MeterType::kNormal: {
-					NormalMeterInfo* meter = dynamic_cast<NormalMeterInfo*>(infos[type].get());
-					return meter ? meter->Update(a_owner, a_level) : false;
-				}
-
+					case MeterType::kNormal: {
+						NormalMeterInfo* meter = dynamic_cast<NormalMeterInfo*>(infos[type].get());
+						if (meter->Update(a_owner, a_level))
+							continue;
+						else
+							return false;
+					}
 				}
 			}
 
-			return false;
+			return true;
 		}
 
 		std::shared_ptr<MeterInfo>	infos[MeterType::kTotal];
