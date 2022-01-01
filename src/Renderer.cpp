@@ -99,9 +99,88 @@ namespace MaxsuDetectionMeter
 
     static ImageSet meterset[MeterType::kTotal];
     
-    static bool DrawSingleMeter(MeterPair a_meterPair)
+    static bool DrawSingleMeter(MeterPair& a_meterPair, const ImVec2 centerPos)
     {
+        using fadeAction = MeterInfo::FadeType;
         
+        auto targActor = a_meterPair.first;
+       
+        if (!targActor || !targActor->currentProcess || !targActor->currentProcess->high)
+            return false;
+        
+        auto meterObj = a_meterPair.second.load();;
+
+        if (!meterObj)
+            return false;
+
+        auto meterHandler = MeterHandler::GetSingleton();
+       
+        const auto angle = meterObj->headingAngle;
+        const float offsetX = meterHandler->radiusX * std::sin(angle * 3.14f / 180.f);
+        const float offsetY = -meterHandler->radiusY * std::cos(angle * 3.14f / 180.f);
+        
+        for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
+            auto info = meterObj->infos[type];
+            if (!info)
+                return false;
+
+            //---------------------------------------- Update Alpha ------------------------------------------------------------
+            switch (info->alpha.GetFadeAction())
+            {
+            case fadeAction::KFadeIn: {
+                std::int32_t alphaValue = 0;
+                alphaValue = std::clamp(info->alpha.GetCurrentValue() + ImGui::GetIO().DeltaTime * meterHandler->fadeSpeed, 0.f, 255.f);
+                info->alpha.SetValue(alphaValue);
+                break;
+            }
+
+            case fadeAction::KFadeOut: {
+                std::int32_t alphaValue = 0;
+                alphaValue = std::clamp(info->alpha.GetCurrentValue() - ImGui::GetIO().DeltaTime * meterHandler->fadeSpeed, 0.f, 255.f);
+                info->alpha.SetValue(alphaValue);
+                break;
+            }
+
+            case fadeAction::KFlashing: {
+                if (info->alpha.GetCurrentValue() >= 255)
+                    info->alpha.flashingIn = false;
+                else if (info->alpha.GetCurrentValue() <= 0)
+                    info->alpha.flashingIn = true;
+
+                float flashValue = info->alpha.flashingIn ? ImGui::GetIO().DeltaTime * meterHandler->flashSpeed : -ImGui::GetIO().DeltaTime * meterHandler->flashSpeed;
+                info->alpha.SetValue(info->alpha.GetCurrentValue() + flashValue);
+                break;
+            }
+
+            default:
+                break;
+            }
+            //----------------------------------------------------------------------------------------------------------------------
+
+
+            //-------------------------------------------- Update Filling ------------------------------------------------------------
+            float filling = 0.f;
+           
+            if (abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) > 1e-6) {
+                float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()), 0.25f, 0.75f);
+                if (info->filling.GetTargetFilling() > info->filling.GetCurrentFilling())
+                    filling = info->filling.GetCurrentFilling() + fillingDelta;
+                else if (info->filling.GetTargetFilling() < info->filling.GetCurrentFilling())
+                    filling = info->filling.GetCurrentFilling() - fillingDelta;
+            }
+            else
+                filling = info->filling.GetCurrentFilling();
+            
+            filling = std::clamp(filling, 0.f, 1.f);
+            info->filling.SetCurrentFilling(filling);
+
+            //----------------------------------------------------------------------------------------------------------------------
+
+            //Draw Meter;
+            ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height), angle, info->alpha.GetCurrentValue(), info->filling.GetCurrentFilling());
+        }
+
+        return true;
     }
 
 	void Renderer::DrawMeters()
@@ -111,62 +190,8 @@ namespace MaxsuDetectionMeter
 
         auto UI = RE::UI::GetSingleton();
 
-        if (!UI || UI->GameIsPaused() || !UI->IsCursorHiddenWhenTopmost())
+        if (!UI || UI->GameIsPaused() || !UI->IsCursorHiddenWhenTopmost() || !UI->IsShowingMenus())
             return;
-
-        auto meterHandler = MeterHandler::GetSingleton();
-
-        auto camera = RE::PlayerCamera::GetSingleton();
-        auto cameraRoot = camera ? camera->cameraRoot : nullptr;
-
-        auto playerChar = RE::PlayerCharacter::GetSingleton();
-
-        auto target = RE::Console::GetSelectedRef() ? RE::Console::GetSelectedRef()->As<RE::Actor>() : nullptr;
-
-        if (!target || !cameraRoot || !playerChar)
-            return;
-
-        auto GetDetectionLevel = [](RE::Actor* a_owner, RE::Actor* a_target) -> int32_t {
-            int32_t detectionLevel = a_owner->RequestDetectionLevel(a_target, RE::DETECTION_PRIORITY::kNormal);
-            if (detectionLevel < 0) {
-                detectionLevel += 100;
-                return detectionLevel = min(max(detectionLevel, 0), 100);
-            }
-            else
-                return 100;
-        };
-
-        static bool start = false;
-
-        auto detectionLevel = GetDetectionLevel(target, playerChar);
-        if (!start && target->HasLOS(playerChar) && detectionLevel > 20)
-            start = true;
-        if (detectionLevel < 20)
-            start = false;
-
-        static std::int32_t frame_alpha = 0;
-        start ? frame_alpha += ImGui::GetIO().DeltaTime * 155.f : frame_alpha -= ImGui::GetIO().DeltaTime * 155.f;
-        frame_alpha = std::clamp(frame_alpha, 0, 255);
-
-        static std::int32_t meter_alpha = 0;
-
-        if (detectionLevel < 100) {
-            start ? meter_alpha += ImGui::GetIO().DeltaTime * 155.f : meter_alpha -= ImGui::GetIO().DeltaTime * 155.f;
-            meter_alpha = std::clamp(frame_alpha, 0, 255);
-        }
-        else {
-            static bool fadeIn = false;
-
-            if (meter_alpha >= 255) {
-                fadeIn = false;
-            }
-            else if (meter_alpha <= 0) {
-                fadeIn = true;
-            }
-            float fadeValue = ImGui::GetIO().DeltaTime * 400.f;
-            fadeIn ? meter_alpha += fadeValue : meter_alpha -= fadeValue;
-        }
-
 
         static constexpr ImGuiWindowFlags windowFlag = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
         RECT screenRect;
@@ -174,39 +199,20 @@ namespace MaxsuDetectionMeter
         ImGui::SetNextWindowSize(ImVec2(std::abs(screenRect.right), std::abs(screenRect.bottom)));
         ImGui::SetNextWindowPos(ImVec2(screenRect.left, screenRect.top));
 
-        static const auto radiusY = 300.f;
-        static const auto radiusX = 500.f;
+        ImGui::Begin("Maxsu_DetectionMeter",nullptr, windowFlag);
 
         auto const centerPos = ImVec2(0.5f * std::abs(screenRect.right - screenRect.left), 0.5f * std::abs(screenRect.top - screenRect.bottom));
 
-        
-        auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, playerChar->GetPosition());
+        auto meterHandler = MeterHandler::GetSingleton();
+        auto it = meterHandler->meterArr.begin();
 
-        auto const angle = CamTrans.GetHeadingAngle(target->GetPosition());
-        const float offsetX = radiusX * std::sin(angle * 3.14f / 180.f);
-        const float offsetY = -radiusY * std::cos(angle * 3.14f / 180.f);
-         
-
-        ImGui::Begin("Maxsu_DetectionMeter",nullptr, windowFlag);
-
-        ImageRotated((void*)meterset[MeterType::kFrame].my_texture, centerPos + ImVec2(offsetX, offsetY),ImVec2(meterset[MeterType::kFrame].my_image_width, meterset[MeterType::kFrame].my_image_height), angle, frame_alpha);
-
-        static float filling = 0.f;
-        float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(detectionLevel / 100.f - filling), 0.25f, 0.75f);
-
-        if (!start && filling > 0.f)
-            filling -= fillingDelta;
-        else{
-            if (filling < detectionLevel / 100.f)
-                filling += fillingDelta;
-            else if (filling > detectionLevel / 100.f)
-                filling -= fillingDelta;
-
-            filling = std::clamp(filling, 0.f, 1.f);
+        while (it != meterHandler->meterArr.end()) {
+            if (DrawSingleMeter(*it, centerPos))
+                it++;
+            else
+                it = meterHandler->meterArr.erase(it);
         }
 
-        ImageRotated((void*)meterset[MeterType::kNormal].my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[MeterType::kNormal].my_image_width, meterset[MeterType::kNormal].my_image_height), angle, meter_alpha, filling);
-        
         ImGui::End();
 	}
 
@@ -226,7 +232,7 @@ namespace MaxsuDetectionMeter
 
     bool Renderer::Install()
     {
-        DKUtil::GUI::InitD3D();     //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
+        DKUtil::GUI::InitD3D();      //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
         DKUtil::GUI::InitImGui();    //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
 
         INFO("GUI Init!"sv);

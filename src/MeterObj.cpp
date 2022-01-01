@@ -16,6 +16,9 @@ namespace MaxsuDetectionMeter
 		auto meterHandler = MeterHandler::GetSingleton();
 
 		if (a_owner) {
+			if (this->alpha.GetFadeAction() == FadeType::KFadeOut && this->alpha.GetCurrentValue() == 0)	//Check if meter is compelery fade out.
+				return false;
+
 			a_level >= meterHandler->minTriggerLevel ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);	//Update AlphaInfo
 			return true;
 		}

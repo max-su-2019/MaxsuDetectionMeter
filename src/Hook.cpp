@@ -5,8 +5,6 @@ namespace MaxsuDetectionMeter
 {
 	std::int32_t  DetectionLevelHook::RequestDetectionLevel(RE::Actor* a_owner, RE::Actor* a_target, RE::DETECTION_PRIORITY a_priority)
 	{
-		//logger::debug("RequestDetectionLevel Trigger!");
-
 		auto ReCalculateDetectionLevel = [](std::int32_t detectionLevel) -> int32_t {
 			if (detectionLevel < 0) {
 				detectionLevel += 100;
@@ -21,22 +19,20 @@ namespace MaxsuDetectionMeter
 		auto camera = RE::PlayerCamera::GetSingleton();
 		auto cameraRoot = camera ? camera->cameraRoot : nullptr;
 
-		if (a_owner && a_target && a_target->IsPlayerRef() && cameraRoot) {
-			const auto ownerID = a_owner->formID;
+		if (a_owner && a_target && a_target->IsPlayerRef() && a_owner->currentProcess && a_owner->currentProcess->high && cameraRoot) {
 			auto meterHandler = MeterHandler::GetSingleton();
 
 			auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, a_target->GetPosition());
 			auto const angle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
 
-			if (!meterHandler->meterArr.count(ownerID) && level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) {
+			if (!meterHandler->meterArr.count(a_owner) && (level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) || level >= 100) {
 				auto meterObj = std::make_shared<MeterObj>(angle);
-				meterHandler->meterArr.emplace(ownerID, meterObj);
-				logger::debug("Add a Meter ID : {:x}", ownerID);
+				meterHandler->meterArr.emplace(a_owner, meterObj);
+				logger::debug("Add a Meter ID : {:x}", a_owner->formID);
 			}
 
-			auto it = meterHandler->meterArr.find(ownerID);
+			auto it = meterHandler->meterArr.find(a_owner);
 			if (it != meterHandler->meterArr.end()) {
-				logger::debug("Find a Meter ID: {:x}", it->first);
 				if (it->second.load() && it->second.load()->Update(a_owner, level, angle))
 					logger::debug("Update Meter Successfully!");
 				else {

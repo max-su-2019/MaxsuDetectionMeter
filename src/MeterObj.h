@@ -37,6 +37,8 @@ namespace MaxsuDetectionMeter
 			_NODISCARD std::int32_t GetCurrentValue() const { return value; }
 			void SetValue(const std::int32_t a_value) { value = a_value; }
 
+			bool flashingIn = false;
+
 		private:
 			FadeType fadeAction = FadeType::KNone;
 			std::int32_t value = 0;
@@ -100,7 +102,7 @@ namespace MaxsuDetectionMeter
 
 		bool Update(RE::Actor* a_owner, std::int32_t a_level, float a_angle)
 		{
-			if (!a_owner)
+			if (!a_owner || !a_owner->currentProcess || !a_owner->currentProcess->high)
 				return false;
 
 			headingAngle = a_angle;
