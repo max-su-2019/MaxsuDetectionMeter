@@ -125,7 +125,6 @@ namespace MaxsuDetectionMeter
                 return false;
 
             //---------------------------------------- Update Alpha ------------------------------------------------------------
-            float size = 1.f;
             switch (info->alpha.GetFadeAction())
             {
             case fadeAction::KFadeIn: {
@@ -139,18 +138,6 @@ namespace MaxsuDetectionMeter
                 std::int32_t alphaValue = 0;
                 alphaValue = std::clamp(info->alpha.GetCurrentValue() - ImGui::GetIO().DeltaTime * meterHandler->fadeSpeed, 0.f, 255.f);
                 info->alpha.SetValue(alphaValue);
-                break;
-            }
-
-            case fadeAction::KFlashing: {
-                if (info->alpha.GetCurrentValue() >= 255)
-                    info->alpha.flashingIn = false;
-                else if (info->alpha.GetCurrentValue() <= 0)
-                    info->alpha.flashingIn = true;
-
-                float flashValue = info->alpha.flashingIn ? ImGui::GetIO().DeltaTime * meterHandler->flashSpeed : -ImGui::GetIO().DeltaTime * meterHandler->flashSpeed;
-                info->alpha.SetValue(info->alpha.GetCurrentValue() + flashValue);
-                size += (info->alpha.GetCurrentValue() / 255.f) * meterHandler->flashScale;
                 break;
             }
 
@@ -175,10 +162,33 @@ namespace MaxsuDetectionMeter
             
             filling = std::clamp(filling, 0.f, 1.f);
             info->filling.SetCurrentFilling(filling);
+            //-------------------------------------------------------------------------------------------------------------------------
 
-            //----------------------------------------------------------------------------------------------------------------------
+            //Draw Non-Flashing Meter
+            ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height), angle, info->alpha.GetCurrentValue(), info->filling.GetCurrentFilling());
+
+            //Draw Flashing Meter
+            if (info->flashing.IsFlashingStart() && info->filling.GetCurrentFilling() == 1.0f) {
+                //-------------------------------------------- Update Flashing ------------------------------------------------------------
+                if (info->flashing.GetCurrentValue() >= 255)
+                    info->flashing.SetFadeAction(fadeAction::KFadeOut);
+                else if (info->flashing.GetCurrentValue() <= 0)
+                    info->flashing.SetFadeAction(fadeAction::KFadeIn);
         
-            ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height) * size, angle, info->alpha.GetCurrentValue(), info->filling.GetCurrentFilling());  //Draw Meter
+                float flashDelta = info->flashing.GetFadeAction() == fadeAction::KFadeIn ? ImGui::GetIO().DeltaTime * meterHandler->flashSpeed : -ImGui::GetIO().DeltaTime * meterHandler->flashSpeed;
+                float flashValue = std::clamp(info->flashing.GetCurrentValue() + flashDelta, 0.f, 255.f);
+                info->flashing.SetValue(flashValue);
+                float size = 1.f + ((255.f - info->flashing.GetCurrentValue()) / 255.f) * meterHandler->flashScale;
+                //-------------------------------------------------------------------------------------------------------------------------
+
+                const float flash_offsetY = -(meterHandler->radiusY + meterset[type].my_image_height * (size - 1.f)) * std::cos(angle * 3.14f / 180.f);
+
+                ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, flash_offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height) * size, angle, info->flashing.GetCurrentValue(), 1.0f);
+            }
+            else {
+                info->flashing.SetValue(255);
+                info->flashing.SetFadeAction(fadeAction::KFadeOut);
+            }
         }
 
         return true;

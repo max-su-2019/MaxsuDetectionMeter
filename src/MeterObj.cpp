@@ -5,9 +5,9 @@ namespace MaxsuDetectionMeter
 {
 	FrameMeterInfo::FrameMeterInfo()
 	{
+		//Set Filling to 100 when init.
 		this->filling.SetTargetFilling(1.0f);
 		this->filling.SetCurrentFilling(1.0f);
-		// Set Filling to 100 when init.
 	}
 
 	bool FrameMeterInfo::Update(RE::Actor* a_owner, std::int32_t a_level)
@@ -33,14 +33,51 @@ namespace MaxsuDetectionMeter
 		if (!a_owner)
 			return false;
 
-		if (a_level < 100) {
-			a_level >= meterHandler->minTriggerLevel ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut); //Update Alpha Fade
-		}
-		else {
-			this->alpha.SetFadeAction(FadeType::KFlashing);	//Flashing when 100
-		}
+		//Update Alpha Fade
+		a_level >= meterHandler->minTriggerLevel ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut); 
+		
+		//Update Flashing
+		if (a_level >= 100)
+			this->flashing.SetFlashingStart(true);
+		else
+			this->flashing.SetFlashingStart(false);
+	
+		//Update Filling
+		this->filling.SetTargetFilling(a_level / 100.f); 
 
-		this->filling.SetTargetFilling(a_level / 100.f); //Update Filling
+		return true;
+	}
+
+
+	bool MeterObj::Update(RE::Actor* a_owner, std::int32_t a_level, float a_angle)
+	{
+		if (!a_owner || !a_owner->currentProcess || !a_owner->currentProcess->high)
+			return false;
+
+		headingAngle = a_angle;
+
+		for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
+			if (!infos[type])
+				return false;
+
+			switch (type) {
+			case MeterType::kFrame: {
+				FrameMeterInfo* meter = dynamic_cast<FrameMeterInfo*>(infos[type].get());
+				if (meter->Update(a_owner, a_level))
+					continue;
+				else
+					return false;
+			}
+
+			case MeterType::kNormal: {
+				NormalMeterInfo* meter = dynamic_cast<NormalMeterInfo*>(infos[type].get());
+				if (meter->Update(a_owner, a_level))
+					continue;
+				else
+					return false;
+			}
+			}
+		}
 
 		return true;
 	}

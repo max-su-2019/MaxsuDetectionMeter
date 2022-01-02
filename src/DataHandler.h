@@ -18,12 +18,11 @@ namespace MaxsuDetectionMeter
 
 		const float		fadeSpeed = 155.f;
 
-		const float		flashSpeed = 450.f;
+		const float		flashSpeed = 500.f;
 		const float		flashScale = 0.25f;
 
-		
 		const float		minFillingSpeed = 0.25f;
-		const float		maxFillingSpeed = 0.75f;
+		const float		maxFillingSpeed = 0.95f;
 
 		const std::int32_t minTriggerLevel = 20;
 

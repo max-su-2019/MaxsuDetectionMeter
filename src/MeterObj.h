@@ -17,16 +17,13 @@ namespace MaxsuDetectionMeter
 
 	class MeterInfo 
 	{
-		
-
 		struct AlphaInfo
 		{
 			enum class FadeType : std::uint32_t
 			{
 				KNone = 0,
 				KFadeIn,
-				KFadeOut,
-				KFlashing
+				KFadeOut
 			};
 
 			AlphaInfo() = default;
@@ -37,9 +34,7 @@ namespace MaxsuDetectionMeter
 			_NODISCARD std::int32_t GetCurrentValue() const { return value; }
 			void SetValue(const std::int32_t a_value) { value = a_value; }
 
-			bool flashingIn = false;
-
-		private:
+		protected:
 			FadeType fadeAction = FadeType::KNone;
 			std::int32_t value = 0;
 		};
@@ -59,6 +54,20 @@ namespace MaxsuDetectionMeter
 			float curFilling = 0.f;
 		};
 
+
+		struct FlashingInfo : public AlphaInfo
+		{
+			FlashingInfo() = default;
+
+			_NODISCARD bool IsFlashingStart() const { return flashingStart; }
+			void SetFlashingStart(const bool a_start) { flashingStart = a_start; }
+
+		private:
+			FadeType fadeAction = FadeType::KFadeOut;
+			std::int32_t value = 255;
+			bool flashingStart = false;
+		};
+
 	public:
 		using FadeType = AlphaInfo::FadeType;
 
@@ -68,6 +77,7 @@ namespace MaxsuDetectionMeter
 
 		AlphaInfo		alpha;
 		FillingInfo		filling;
+		FlashingInfo	flashing;
 
 	};
 
@@ -100,38 +110,7 @@ namespace MaxsuDetectionMeter
 			infos[MeterType::kNormal] = std::make_shared<NormalMeterInfo>();
 		}
 
-		bool Update(RE::Actor* a_owner, std::int32_t a_level, float a_angle)
-		{
-			if (!a_owner || !a_owner->currentProcess || !a_owner->currentProcess->high)
-				return false;
-
-			headingAngle = a_angle;
-			
-			for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
-				if (!infos[type])
-					return false;
-
-				switch (type){
-					case MeterType::kFrame: {
-						FrameMeterInfo* meter = dynamic_cast<FrameMeterInfo*>(infos[type].get());
-						if (meter->Update(a_owner, a_level))
-							continue;
-						else
-							return false;
-					}
-
-					case MeterType::kNormal: {
-						NormalMeterInfo* meter = dynamic_cast<NormalMeterInfo*>(infos[type].get());
-						if (meter->Update(a_owner, a_level))
-							continue;
-						else
-							return false;
-					}
-				}
-			}
-
-			return true;
-		}
+		bool Update(RE::Actor* a_owner, std::int32_t a_level, float a_angle);
 
 		std::shared_ptr<MeterInfo>	infos[MeterType::kTotal];
 		float						headingAngle;
