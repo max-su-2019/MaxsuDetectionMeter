@@ -51,7 +51,7 @@ namespace MaxsuDetectionMeter
 
 	bool MeterObj::Update(RE::Actor* a_owner, std::int32_t a_level, float a_angle)
 	{
-		if (!a_owner || !a_owner->currentProcess || !a_owner->currentProcess->high)
+		if (!a_owner || !a_owner->currentProcess || !a_owner->currentProcess->high || !a_owner->currentProcess->InHighProcess())
 			return false;
 
 		headingAngle = a_angle;
@@ -76,6 +76,8 @@ namespace MaxsuDetectionMeter
 				else
 					return false;
 			}
+			default:
+				break;
 			}
 		}
 

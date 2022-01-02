@@ -3,7 +3,7 @@
 
 namespace MaxsuDetectionMeter
 {
-	using MeterPair = std::pair <RE::Actor* const, std::atomic<std::shared_ptr<MeterObj>>>;
+	using MeterPair = std::pair <const RE::FormID, std::atomic<std::shared_ptr<MeterObj>>>;
 
 	class MeterHandler
 	{
@@ -14,7 +14,7 @@ namespace MaxsuDetectionMeter
 			return std::addressof(singleton);
 		}
 		
-		std::map<RE::Actor*, std::atomic<std::shared_ptr<MeterObj>>> meterArr;
+		std::map<RE::FormID, std::atomic<std::shared_ptr<MeterObj>>> meterArr;
 
 		const float		fadeSpeed = 155.f;
 
@@ -44,9 +44,5 @@ namespace MaxsuDetectionMeter
 
 		MeterHandler& operator= (MeterHandler&&) = delete;
 	};
-
-
-
-
 
 }

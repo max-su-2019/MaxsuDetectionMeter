@@ -20,18 +20,19 @@ namespace MaxsuDetectionMeter
 		auto cameraRoot = camera ? camera->cameraRoot : nullptr;
 
 		if (a_owner && a_target && a_target->IsPlayerRef() && a_owner->currentProcess && a_owner->currentProcess->high && cameraRoot) {
+			const auto ownerID = a_owner->formID;
 			auto meterHandler = MeterHandler::GetSingleton();
 
 			auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, a_target->GetPosition());
 			auto const angle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
 
-			if (!meterHandler->meterArr.count(a_owner) && (level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) || level >= 100) {
+			if (!meterHandler->meterArr.count(ownerID) && (level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) || level >= 100) {
 				auto meterObj = std::make_shared<MeterObj>(angle);
-				meterHandler->meterArr.emplace(a_owner, meterObj);
-				logger::debug("Add a Meter ID : {:x}", a_owner->formID);
+				meterHandler->meterArr.emplace(ownerID, meterObj);
+				logger::debug("Add a Meter ID : {:x}", ownerID);
 			}
 
-			auto it = meterHandler->meterArr.find(a_owner);
+			auto it = meterHandler->meterArr.find(ownerID);
 			if (it != meterHandler->meterArr.end()) {
 				if (it->second.load() && it->second.load()->Update(a_owner, level, angle))
 					logger::debug("Update Meter Successfully!");

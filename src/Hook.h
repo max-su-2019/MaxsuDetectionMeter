@@ -18,7 +18,6 @@ namespace MaxsuDetectionMeter
 	private:
 		static std::int32_t RequestDetectionLevel(RE::Actor* a_owner, RE::Actor* a_target, RE::DETECTION_PRIORITY a_priority);
 
-
 		static inline REL::Relocation<decltype(RequestDetectionLevel)> _RequestDetectionLevel;
 	};
 }

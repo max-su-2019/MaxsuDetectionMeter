@@ -103,9 +103,9 @@ namespace MaxsuDetectionMeter
     {
         using fadeAction = MeterInfo::FadeType;
         
-        auto targActor = a_meterPair.first;
+        auto targActor = RE::TESForm::LookupByID<RE::Actor>(a_meterPair.first);
        
-        if (!targActor || !targActor->currentProcess || !targActor->currentProcess->high)
+        if (!targActor || !targActor->currentProcess || !targActor->currentProcess->high || !targActor->currentProcess->InHighProcess())
             return false;
         
         auto meterObj = a_meterPair.second.load();;
@@ -215,8 +215,8 @@ namespace MaxsuDetectionMeter
         auto const centerPos = ImVec2(0.5f * std::abs(screenRect.right - screenRect.left), 0.5f * std::abs(screenRect.top - screenRect.bottom));
 
         auto meterHandler = MeterHandler::GetSingleton();
-        auto it = meterHandler->meterArr.begin();
 
+        auto it = meterHandler->meterArr.begin();
         while (it != meterHandler->meterArr.end()) {
             if (DrawSingleMeter(*it, centerPos))
                 it++;

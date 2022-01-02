@@ -1,6 +1,5 @@
 #pragma once
 
-
 namespace MaxsuDetectionMeter
 {
 	class Renderer
