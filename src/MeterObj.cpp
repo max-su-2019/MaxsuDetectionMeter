@@ -3,7 +3,6 @@
 
 namespace MaxsuDetectionMeter
 {
-
 	FrameMeterInfo::FrameMeterInfo()
 	{
 		this->filling.SetTargetFilling(1.0f);

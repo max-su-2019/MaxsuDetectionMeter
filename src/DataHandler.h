@@ -17,7 +17,10 @@ namespace MaxsuDetectionMeter
 		std::map<RE::Actor*, std::atomic<std::shared_ptr<MeterObj>>> meterArr;
 
 		const float		fadeSpeed = 155.f;
-		const float		flashSpeed = 400.f;
+
+		const float		flashSpeed = 450.f;
+		const float		flashScale = 0.25f;
+
 		
 		const float		minFillingSpeed = 0.25f;
 		const float		maxFillingSpeed = 0.75f;

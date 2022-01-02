@@ -125,6 +125,7 @@ namespace MaxsuDetectionMeter
                 return false;
 
             //---------------------------------------- Update Alpha ------------------------------------------------------------
+            float size = 1.f;
             switch (info->alpha.GetFadeAction())
             {
             case fadeAction::KFadeIn: {
@@ -149,6 +150,7 @@ namespace MaxsuDetectionMeter
 
                 float flashValue = info->alpha.flashingIn ? ImGui::GetIO().DeltaTime * meterHandler->flashSpeed : -ImGui::GetIO().DeltaTime * meterHandler->flashSpeed;
                 info->alpha.SetValue(info->alpha.GetCurrentValue() + flashValue);
+                size += (info->alpha.GetCurrentValue() / 255.f) * meterHandler->flashScale;
                 break;
             }
 
@@ -162,7 +164,7 @@ namespace MaxsuDetectionMeter
             float filling = 0.f;
            
             if (abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) > 1e-6) {
-                float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()), 0.25f, 0.75f);
+                float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()), meterHandler->minFillingSpeed, meterHandler->maxFillingSpeed);
                 if (info->filling.GetTargetFilling() > info->filling.GetCurrentFilling())
                     filling = info->filling.GetCurrentFilling() + fillingDelta;
                 else if (info->filling.GetTargetFilling() < info->filling.GetCurrentFilling())
@@ -175,9 +177,8 @@ namespace MaxsuDetectionMeter
             info->filling.SetCurrentFilling(filling);
 
             //----------------------------------------------------------------------------------------------------------------------
-
-            //Draw Meter;
-            ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height), angle, info->alpha.GetCurrentValue(), info->filling.GetCurrentFilling());
+        
+            ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height) * size, angle, info->alpha.GetCurrentValue(), info->filling.GetCurrentFilling());  //Draw Meter
         }
 
         return true;
@@ -190,7 +191,7 @@ namespace MaxsuDetectionMeter
 
         auto UI = RE::UI::GetSingleton();
 
-        if (!UI || UI->GameIsPaused() || !UI->IsCursorHiddenWhenTopmost() || !UI->IsShowingMenus())
+        if (!UI || UI->GameIsPaused() || !UI->IsCursorHiddenWhenTopmost() || !UI->IsShowingMenus() || !UI->GetMenu<RE::HUDMenu>())
             return;
 
         static constexpr ImGuiWindowFlags windowFlag = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
