@@ -69,6 +69,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	MaxsuDetectionMeter::Renderer::Install();
 	//MaxsuDetectionMeter::MenuOpenCloseEvent::Sink();
 	MaxsuDetectionMeter::DetectionLevelHook::InstallHook();
+	MaxsuDetectionMeter::ActorUpdateHook::InstallHook();
 
 	return true;
 }

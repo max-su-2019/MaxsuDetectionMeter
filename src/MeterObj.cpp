@@ -49,12 +49,33 @@ namespace MaxsuDetectionMeter
 	}
 
 
-	bool MeterObj::Update(RE::Actor* a_owner, std::int32_t a_level, float a_angle)
+	bool MeterObj::Update(RE::Actor* a_owner)
 	{
 		if (!a_owner || !a_owner->currentProcess || !a_owner->currentProcess->high || !a_owner->currentProcess->InHighProcess())
 			return false;
 
-		headingAngle = a_angle;
+		auto playerRef = RE::PlayerCharacter::GetSingleton();
+		if (!playerRef)
+			return false;
+
+		auto camera = RE::PlayerCamera::GetSingleton();
+		auto cameraRoot = camera ? camera->cameraRoot : nullptr;
+		if (!cameraRoot)
+			return false;
+
+		auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, playerRef->GetPosition());
+		headingAngle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
+
+		auto ReCalculateDetectionLevel = [](std::int32_t detectionLevel) -> int32_t {
+			if (detectionLevel < 0) {
+				detectionLevel += 100;
+				return detectionLevel = min(max(detectionLevel, 0), 100);
+			}
+			else
+				return 100;
+		};
+		
+		auto const level = ReCalculateDetectionLevel(a_owner->RequestDetectionLevel(playerRef));
 
 		for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
 			if (!infos[type])
@@ -63,7 +84,7 @@ namespace MaxsuDetectionMeter
 			switch (type) {
 			case MeterType::kFrame: {
 				FrameMeterInfo* meter = dynamic_cast<FrameMeterInfo*>(infos[type].get());
-				if (meter->Update(a_owner, a_level))
+				if (meter->Update(a_owner, level))
 					continue;
 				else
 					return false;
@@ -71,11 +92,12 @@ namespace MaxsuDetectionMeter
 
 			case MeterType::kNormal: {
 				NormalMeterInfo* meter = dynamic_cast<NormalMeterInfo*>(infos[type].get());
-				if (meter->Update(a_owner, a_level))
+				if (meter->Update(a_owner, level))
 					continue;
 				else
 					return false;
 			}
+
 			default:
 				break;
 			}

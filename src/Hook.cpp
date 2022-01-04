@@ -3,7 +3,7 @@
 
 namespace MaxsuDetectionMeter
 {
-	std::int32_t  DetectionLevelHook::RequestDetectionLevel(RE::Actor* a_owner, RE::Actor* a_target, RE::DETECTION_PRIORITY a_priority)
+	std::int32_t DetectionLevelHook::RequestDetectionLevel(RE::Actor* a_owner, RE::Actor* a_target, RE::DETECTION_PRIORITY a_priority)
 	{
 		auto ReCalculateDetectionLevel = [](std::int32_t detectionLevel) -> int32_t {
 			if (detectionLevel < 0) {
@@ -26,15 +26,26 @@ namespace MaxsuDetectionMeter
 			auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, a_target->GetPosition());
 			auto const angle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
 
-			if (!meterHandler->meterArr.count(ownerID) && (level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) || level >= 100) {
+			if (!meterHandler->meterArr.count(ownerID) && ((level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) || level >= 100)) {
 				auto meterObj = std::make_shared<MeterObj>(angle);
 				meterHandler->meterArr.emplace(ownerID, meterObj);
 				logger::debug("Add a Meter ID : {:x}", ownerID);
 			}
+		}
+			
+		return _RequestDetectionLevel(a_owner, a_target, a_priority);
+	}
 
-			auto it = meterHandler->meterArr.find(ownerID);
+
+	void ActorUpdateHook::ActorUpdate(RE::Actor* a_actor, float a_delta)
+	{
+		_ActorUpdate(a_actor, a_delta);
+
+		if (a_actor) {
+			auto meterHandler = MeterHandler::GetSingleton();
+			auto it = meterHandler->meterArr.find(a_actor->formID);
 			if (it != meterHandler->meterArr.end()) {
-				if (it->second.load() && it->second.load()->Update(a_owner, level, angle))
+				if (it->second.load() && it->second.load()->Update(a_actor))
 					logger::debug("Update Meter Successfully!");
 				else {
 					meterHandler->meterArr.erase(it);
@@ -42,8 +53,5 @@ namespace MaxsuDetectionMeter
 				}
 			}
 		}
-			
-		return _RequestDetectionLevel(a_owner, a_target, a_priority);
 	}
-
 }

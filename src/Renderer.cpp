@@ -178,7 +178,7 @@ namespace MaxsuDetectionMeter
                 float flashDelta = info->flashing.GetFadeAction() == fadeAction::KFadeIn ? ImGui::GetIO().DeltaTime * meterHandler->flashSpeed : -ImGui::GetIO().DeltaTime * meterHandler->flashSpeed;
                 float flashValue = std::clamp(info->flashing.GetCurrentValue() + flashDelta, 0.f, 255.f);
                 info->flashing.SetValue(flashValue);
-                float size = 1.f + ((255.f - info->flashing.GetCurrentValue()) / 255.f) * meterHandler->flashScale;
+                float size = 1.f + ((255.f - info->flashing.GetCurrentValue()) / 255.f) * meterHandler->flashScale;  //The lower the aplha, the bigger the size.
                 //-------------------------------------------------------------------------------------------------------------------------
 
                 const float flash_offsetY = -(meterHandler->radiusY + meterset[type].my_image_height * (size - 1.f)) * std::cos(angle * 3.14f / 180.f);

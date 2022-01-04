@@ -110,7 +110,7 @@ namespace MaxsuDetectionMeter
 			infos[MeterType::kNormal] = std::make_shared<NormalMeterInfo>();
 		}
 
-		bool Update(RE::Actor* a_owner, std::int32_t a_level, float a_angle);
+		bool Update(RE::Actor* a_owner);
 
 		std::shared_ptr<MeterInfo>	infos[MeterType::kTotal];
 		float						headingAngle;
