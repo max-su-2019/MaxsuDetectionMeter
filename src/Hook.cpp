@@ -5,22 +5,13 @@ namespace MaxsuDetectionMeter
 {
 	std::int32_t DetectionLevelHook::RequestDetectionLevel(RE::Actor* a_owner, RE::Actor* a_target, RE::DETECTION_PRIORITY a_priority)
 	{
-		auto ReCalculateDetectionLevel = [](std::int32_t detectionLevel) -> int32_t {
-			if (detectionLevel < 0) {
-				detectionLevel += 100;
-				return detectionLevel = min(max(detectionLevel, 0), 100);
-			}
-			else
-				return 100;
-		};
-
 		auto result = _RequestDetectionLevel(a_owner, a_target, a_priority);
 
 		auto camera = RE::PlayerCamera::GetSingleton();
 		auto cameraRoot = camera ? camera->cameraRoot : nullptr;
 
 		if (a_owner && a_target && a_target->IsPlayerRef() && a_target->IsSneaking() && a_owner->currentProcess && a_owner->currentProcess->high && cameraRoot) {
-			auto level = ReCalculateDetectionLevel(result);
+			auto level = MeterHandler::ReCalculateDetectionLevel(result);
 			const auto ownerID = a_owner->formID;
 			auto meterHandler = MeterHandler::GetSingleton();
 
@@ -46,11 +37,12 @@ namespace MaxsuDetectionMeter
 			auto meterHandler = MeterHandler::GetSingleton();
 			auto it = meterHandler->meterArr.find(a_actor->formID);
 			if (it != meterHandler->meterArr.end()) {
-				if (it->second.load() && it->second.load()->Update(a_actor))
-					logger::debug("Update Meter Successfully!");
+				if (it->second.load() && it->second.load()->Update(a_actor)) {
+					//logger::debug("Update Meter Successfully!");
+				}
 				else {
 					meterHandler->meterArr.erase(it);
-					logger::debug("Update Meter Fail!");
+					logger::debug("Erase a Meter ID : {:x}", a_actor->formID);
 				}
 			}
 		}

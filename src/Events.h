@@ -12,17 +12,17 @@ namespace MaxsuDetectionMeter
 				auto targetRef = RE::Console::GetSelectedRef() ? RE::Console::GetSelectedRef()->As<RE::Actor>() : nullptr;
 				auto playerRef = RE::PlayerCharacter::GetSingleton();
 				if (targetRef && playerRef ) {
-					auto GetDetectionLevel = [](RE::Actor* a_owner, RE::Actor* a_target) -> int32_t {
-						int32_t detectionLevel = a_owner->RequestDetectionLevel(a_target, RE::DETECTION_PRIORITY::kNormal);
-						if (detectionLevel < 0) {
-							detectionLevel += 100;
-							return detectionLevel = min(max(detectionLevel, 0), 100);
+					auto group = targetRef->GetCombatGroup();
+					if (group) {
+						for (auto target : group->targets) {
+							if (target.targetHandle && target.targetHandle.get() && target.targetHandle.get()->IsPlayerRef()) {
+								auto searchState = group->searchState;
+								auto detectionLevel = target.detectLevel;
+								auto stealthPoint = target.attackedStealthPoints;
+								logger::debug("Searach State is {}, detectionLevel is {}, stealthPoint is {}", searchState, detectionLevel, stealthPoint);
+							}
 						}
-						else
-							return 100;
-					};
-
-					logger::debug("Get Detection Level is {}", GetDetectionLevel(targetRef, playerRef));
+					}
 				}
 			}
 

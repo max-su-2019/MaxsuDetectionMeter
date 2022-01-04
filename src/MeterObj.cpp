@@ -66,16 +66,7 @@ namespace MaxsuDetectionMeter
 		auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, playerRef->GetPosition());
 		headingAngle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
 
-		auto ReCalculateDetectionLevel = [](std::int32_t detectionLevel) -> int32_t {
-			if (detectionLevel < 0) {
-				detectionLevel += 100;
-				return detectionLevel = min(max(detectionLevel, 0), 100);
-			}
-			else
-				return 100;
-		};
-		
-		auto const level = ReCalculateDetectionLevel(a_owner->RequestDetectionLevel(playerRef));
+		auto const level = MeterHandler::ReCalculateDetectionLevel(a_owner->RequestDetectionLevel(playerRef));
 
 		for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
 			if (!infos[type])
