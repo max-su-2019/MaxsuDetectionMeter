@@ -15,7 +15,7 @@ namespace MaxsuDetectionMeter
 		}
 
 		static std::int32_t ReCalculateDetectionLevel(std::int32_t a_level);
-		static bool GetStealthPoint(RE::Actor* a_owner, RE::Actor* a_target, float& a_result);
+		static std::optional<float> GetStealthPoint(RE::Actor* a_owner, RE::Actor* a_target);
 		
 		std::map<RE::FormID, std::atomic<std::shared_ptr<MeterObj>>> meterArr;
 
