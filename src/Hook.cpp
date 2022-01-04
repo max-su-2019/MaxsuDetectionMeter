@@ -14,12 +14,13 @@ namespace MaxsuDetectionMeter
 				return 100;
 		};
 
-		auto level = ReCalculateDetectionLevel(_RequestDetectionLevel(a_owner, a_target, a_priority));
+		auto result = _RequestDetectionLevel(a_owner, a_target, a_priority);
 
 		auto camera = RE::PlayerCamera::GetSingleton();
 		auto cameraRoot = camera ? camera->cameraRoot : nullptr;
 
-		if (a_owner && a_target && a_target->IsPlayerRef() && a_owner->currentProcess && a_owner->currentProcess->high && cameraRoot) {
+		if (a_owner && a_target && a_target->IsPlayerRef() && a_target->IsSneaking() && a_owner->currentProcess && a_owner->currentProcess->high && cameraRoot) {
+			auto level = ReCalculateDetectionLevel(result);
 			const auto ownerID = a_owner->formID;
 			auto meterHandler = MeterHandler::GetSingleton();
 
@@ -33,7 +34,7 @@ namespace MaxsuDetectionMeter
 			}
 		}
 			
-		return _RequestDetectionLevel(a_owner, a_target, a_priority);
+		return result;
 	}
 
 

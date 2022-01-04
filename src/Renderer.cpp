@@ -204,6 +204,16 @@ namespace MaxsuDetectionMeter
         if (!UI || UI->GameIsPaused() || !UI->IsCursorHiddenWhenTopmost() || !UI->IsShowingMenus() || !UI->GetMenu<RE::HUDMenu>())
             return;
 
+        auto meterHandler = MeterHandler::GetSingleton();
+        if (!meterHandler)
+            return;
+
+        auto playerRef = RE::PlayerCharacter::GetSingleton();
+        if (!playerRef || !playerRef->IsSneaking()) {
+            meterHandler->meterArr.clear();
+            return;
+        }
+
         static constexpr ImGuiWindowFlags windowFlag = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
         RECT screenRect;
         IM_ASSERT(GetWindowRect(DKU_G_TARGETHWND, &screenRect));
@@ -213,8 +223,6 @@ namespace MaxsuDetectionMeter
         ImGui::Begin("Maxsu_DetectionMeter",nullptr, windowFlag);
 
         auto const centerPos = ImVec2(0.5f * std::abs(screenRect.right - screenRect.left), 0.5f * std::abs(screenRect.top - screenRect.bottom));
-
-        auto meterHandler = MeterHandler::GetSingleton();
 
         auto it = meterHandler->meterArr.begin();
         while (it != meterHandler->meterArr.end()) {

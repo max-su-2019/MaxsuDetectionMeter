@@ -8,11 +8,19 @@ namespace MaxsuDetectionMeter
 			SKSE::AllocTrampoline(1 << 4);
 			auto& trampoline = SKSE::GetTrampoline();
 
-			static std::uint32_t baseID = 38606, offset = 0x414;
-			REL::Relocation<std::uintptr_t> GetDetectedBase{ REL::ID(baseID) };
-			_RequestDetectionLevel = trampoline.write_call<5>(GetDetectedBase.address() + offset, RequestDetectionLevel);
+			std::pair<std::uint32_t, std::uint32_t> offsetPair[] = {
+				std::make_pair(38606,0x414),
+				std::make_pair(36895,0x50B)
+			};
 
-			logger::debug("Hook RequestDetectionLevel!, Base:{}, Offset:{:x}", baseID, offset);
+			for (auto pair : offsetPair) {
+				std::uint32_t baseID = pair.first, offset = pair.second;
+
+				REL::Relocation<std::uintptr_t> GetDetectedBase{ REL::ID(baseID) };
+				_RequestDetectionLevel = trampoline.write_call<5>(GetDetectedBase.address() + offset, RequestDetectionLevel);
+
+				logger::debug("Hook RequestDetectionLevel!, Base:{}, Offset:{:x}", baseID, offset);
+			}
 		}
 
 	private:
