@@ -12,13 +12,14 @@ namespace MaxsuDetectionMeter
 
 		if (a_owner && a_target && a_target->IsPlayerRef() && a_target->IsSneaking() && a_owner->currentProcess && a_owner->currentProcess->high && cameraRoot) {
 			auto level = MeterHandler::ReCalculateDetectionLevel(result);
+			auto stealthPoint = MeterHandler::GetStealthPoint(a_owner);
 			const auto ownerID = a_owner->formID;
 			auto meterHandler = MeterHandler::GetSingleton();
 
 			auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, a_target->GetPosition());
 			auto const angle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
 
-			if (!meterHandler->meterArr.count(ownerID) && ((level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) || level >= 100)) {
+			if (!meterHandler->meterArr.count(ownerID) && ((level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) || level >= 100 || stealthPoint.has_value())) {
 				auto meterObj = std::make_shared<MeterObj>(angle);
 				meterHandler->meterArr.emplace(ownerID, meterObj);
 				logger::debug("Add a Meter ID : {:x}", ownerID);
@@ -36,13 +37,9 @@ namespace MaxsuDetectionMeter
 		if (a_actor) {
 			auto meterHandler = MeterHandler::GetSingleton();
 			auto it = meterHandler->meterArr.find(a_actor->formID);
-			if (it != meterHandler->meterArr.end()) {
-				if (it->second.load() && it->second.load()->Update(a_actor)) {
-					//logger::debug("Update Meter Successfully!");
-				}
-				else {
-					meterHandler->meterArr.erase(it);
-					logger::debug("Erase a Meter ID : {:x}", a_actor->formID);
+			if (it != meterHandler->meterArr.end() && it->second.load()) {
+				if (!it->second.load()->Update(a_actor)) {
+					it->second.load()->MarkForRemove();
 				}
 			}
 		}

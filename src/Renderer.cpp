@@ -110,7 +110,7 @@ namespace MaxsuDetectionMeter
         
         auto meterObj = a_meterPair.second.load();;
 
-        if (!meterObj)
+        if (!meterObj || meterObj->ShouldRemove())
             return false;
 
         auto meterHandler = MeterHandler::GetSingleton();
@@ -244,6 +244,9 @@ namespace MaxsuDetectionMeter
 
             bool ret2 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_Frame.png", &meterset[MeterType::kFrame].my_texture, meterset[MeterType::kFrame].my_image_width, meterset[MeterType::kFrame].my_image_height);
             IM_ASSERT(ret2);
+
+            bool ret3 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_Hostile.png", &meterset[MeterType::kCombat].my_texture, meterset[MeterType::kCombat].my_image_width, meterset[MeterType::kCombat].my_image_height);
+            IM_ASSERT(ret3);
 
             DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
         }

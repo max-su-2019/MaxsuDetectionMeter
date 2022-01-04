@@ -10,7 +10,7 @@ namespace MaxsuDetectionMeter
 		this->filling.SetCurrentFilling(1.0f);
 	}
 
-	bool FrameMeterInfo::Update(RE::Actor* a_owner, std::int32_t a_level)
+	bool FrameMeterInfo::Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints)
 	{
 		auto meterHandler = MeterHandler::GetSingleton();
 
@@ -18,7 +18,12 @@ namespace MaxsuDetectionMeter
 			if (this->alpha.GetFadeAction() == FadeType::KFadeOut && this->alpha.GetCurrentValue() == 0)	//Check if meter is compelery fade out.
 				return false;
 
-			a_level >= meterHandler->minTriggerLevel ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);	//Update AlphaInfo
+			//Update AlphaInfo
+			if (a_stealthPoints.has_value()) 
+				this->alpha.SetFadeAction(FadeType::KFadeIn);	//Frame Meter always shown when in combat state
+			else
+				a_level >= meterHandler->minTriggerLevel ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);	
+
 			return true;
 		}
 
@@ -26,28 +31,58 @@ namespace MaxsuDetectionMeter
 	}
 
 
-	bool NormalMeterInfo::Update(RE::Actor* a_owner, std::int32_t a_level)
+	bool NormalMeterInfo::Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints)
 	{
 		auto meterHandler = MeterHandler::GetSingleton();
 
 		if (!a_owner)
 			return false;
 
-		//Update Alpha Fade
-		a_level >= meterHandler->minTriggerLevel ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut); 
+		//Update AlphaInfo
+		if (a_stealthPoints.has_value()) {
+			//Always hide non-combat meter when in combat state.
+			this->alpha.SetFadeAction(FadeType::KFadeOut);	
+			this->alpha.SetValue(0);
+		}
+		else
+			a_level >= meterHandler->minTriggerLevel ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut); 
 		
 		//Update Flashing
-		if (a_level >= 100)
+		if (a_level >= 100 && !a_stealthPoints.has_value())
 			this->flashing.SetFlashingStart(true);
 		else
 			this->flashing.SetFlashingStart(false);
 	
 		//Update Filling
-		this->filling.SetTargetFilling(a_level / 100.f); 
+		if (!a_stealthPoints.has_value()) {
+			this->filling.SetTargetFilling(a_level / 100.f);
+		}
+		else
+			this->filling.SetTargetFilling(0.f);
 
 		return true;
 	}
 
+
+	bool CombatMeterInfo::Update(RE::Actor* a_owner, std::int32_t, std::optional<float> a_stealthPoints)
+	{
+		if (!a_owner)
+			return false;
+
+		//Update AlphaInfo
+		a_stealthPoints.has_value() && a_stealthPoints.value() >= 15.f ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
+
+		//Update Flashing
+		if(a_stealthPoints.has_value() && a_stealthPoints.value() >= 99.9f)
+			this->flashing.SetFlashingStart(true);
+		else
+			this->flashing.SetFlashingStart(false);
+
+		//Update Filling
+		a_stealthPoints.has_value() ? this->filling.SetTargetFilling(a_stealthPoints.value() / 100.f) : this->filling.SetTargetFilling(0.f);
+
+		return true;
+	}
 
 	bool MeterObj::Update(RE::Actor* a_owner)
 	{
@@ -68,6 +103,8 @@ namespace MaxsuDetectionMeter
 
 		auto const level = MeterHandler::ReCalculateDetectionLevel(a_owner->RequestDetectionLevel(playerRef));
 
+		auto stealthPoints = MeterHandler::GetStealthPoint(a_owner);
+
 		for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
 			if (!infos[type])
 				return false;
@@ -75,7 +112,7 @@ namespace MaxsuDetectionMeter
 			switch (type) {
 			case MeterType::kFrame: {
 				FrameMeterInfo* meter = dynamic_cast<FrameMeterInfo*>(infos[type].get());
-				if (meter->Update(a_owner, level))
+				if (meter->Update(a_owner, level, stealthPoints))
 					continue;
 				else
 					return false;
@@ -83,7 +120,15 @@ namespace MaxsuDetectionMeter
 
 			case MeterType::kNormal: {
 				NormalMeterInfo* meter = dynamic_cast<NormalMeterInfo*>(infos[type].get());
-				if (meter->Update(a_owner, level))
+				if (meter->Update(a_owner, level, stealthPoints))
+					continue;
+				else
+					return false;
+			}
+
+			case MeterType::kCombat: {
+				CombatMeterInfo* meter = dynamic_cast<CombatMeterInfo*>(infos[type].get());
+				if (meter->Update(a_owner, level, stealthPoints))
 					continue;
 				else
 					return false;

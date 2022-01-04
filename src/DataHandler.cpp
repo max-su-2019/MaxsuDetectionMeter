@@ -13,7 +13,7 @@ namespace MaxsuDetectionMeter
 	}
 
 
-	std::optional<float> MeterHandler::GetStealthPoint(RE::Actor* a_owner, RE::Actor* a_target)
+	std::optional<float> MeterHandler::GetStealthPoint(RE::Actor* a_owner)
 	{
 		std::optional<float> result;
 
@@ -24,7 +24,7 @@ namespace MaxsuDetectionMeter
 		if (group) {
 			for (auto target : group->targets) {
 				if (target.targetHandle.get() && target.targetHandle.get()->IsPlayerRef()) {
-					return result = std::clamp(100.f - target.attackedStealthPoints, 0.f, 100.f);
+					return result.emplace(std::clamp(100.f - target.attackedStealthPoints, 0.f, 100.f));
 				}
 			}
 		}

@@ -15,13 +15,13 @@ namespace MaxsuDetectionMeter
 		}
 
 		static std::int32_t ReCalculateDetectionLevel(std::int32_t a_level);
-		static std::optional<float> GetStealthPoint(RE::Actor* a_owner, RE::Actor* a_target);
+		static std::optional<float> GetStealthPoint(RE::Actor* a_owner);
 		
 		std::map<RE::FormID, std::atomic<std::shared_ptr<MeterObj>>> meterArr;
 
-		const float		fadeSpeed = 155.f;
+		const float		fadeSpeed = 255.f;
 
-		const float		flashSpeed = 500.f;
+		const float		flashSpeed = 550.f;
 		const float		flashScale = 0.25f;
 
 		const float		minFillingSpeed = 0.25f;
@@ -31,8 +31,6 @@ namespace MaxsuDetectionMeter
 
 		const float radiusX = 500.f;
 		const float radiusY = 300.f;
-
-		//mutable RE::BSSpinLock meterLock;
 
 	private:
 		MeterHandler() = default;

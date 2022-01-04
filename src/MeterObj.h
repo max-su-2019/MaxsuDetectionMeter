@@ -8,7 +8,7 @@ namespace MaxsuDetectionMeter
 		{
 			kFrame,
 			kNormal,
-			//kCombat,
+			kCombat,
 			kTotal
 		};
 	};
@@ -73,7 +73,7 @@ namespace MaxsuDetectionMeter
 
 		MeterInfo() = default;
 
-		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level) = 0;
+		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) = 0;
 
 		AlphaInfo		alpha;
 		FillingInfo		filling;
@@ -87,7 +87,7 @@ namespace MaxsuDetectionMeter
 	public:
 		FrameMeterInfo();
 
-		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level) override;
+		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
 	};
 
 
@@ -96,8 +96,18 @@ namespace MaxsuDetectionMeter
 	public:
 		NormalMeterInfo() = default;
 
-		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level) override;
+		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
 	};
+
+
+	class CombatMeterInfo : public MeterInfo
+	{
+	public:
+		CombatMeterInfo() = default;
+
+		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
+	};
+
 
 
 	class MeterObj
@@ -108,11 +118,17 @@ namespace MaxsuDetectionMeter
 		{
 			infos[MeterType::kFrame] = std::make_shared<FrameMeterInfo>();
 			infos[MeterType::kNormal] = std::make_shared<NormalMeterInfo>();
+			infos[MeterType::kCombat] = std::make_shared<CombatMeterInfo>();
 		}
 
 		bool Update(RE::Actor* a_owner);
+		void MarkForRemove() { shouldRemove = true; }
+		bool ShouldRemove() const { return shouldRemove; }
 
 		std::shared_ptr<MeterInfo>	infos[MeterType::kTotal];
 		float						headingAngle;
+
+	private:
+		bool shouldRemove = false;
 	};
 }
