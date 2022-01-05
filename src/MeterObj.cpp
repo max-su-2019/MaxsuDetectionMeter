@@ -104,6 +104,8 @@ namespace MaxsuDetectionMeter
 		auto const level = MeterHandler::ReCalculateDetectionLevel(a_owner->RequestDetectionLevel(playerRef));
 
 		auto stealthPoints = MeterHandler::GetStealthPoint(a_owner);
+		if (!stealthPoints.has_value() && playerRef->IsInCombat())	//Remove non-combat meters when player in combat state.
+			return false;
 
 		for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
 			if (!infos[type] || !infos[type]->Update(a_owner,level,stealthPoints))

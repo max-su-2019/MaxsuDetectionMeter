@@ -151,7 +151,7 @@ namespace MaxsuDetectionMeter
             float filling = 0.f;
            
             if (abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) > 1e-6) {
-                float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()), meterHandler->minFillingSpeed, meterHandler->maxFillingSpeed);
+                float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) / info->filling.GetCurrentFilling(), meterHandler->minFillingSpeed, meterHandler->maxFillingSpeed);
                 if (info->filling.GetTargetFilling() > info->filling.GetCurrentFilling())
                     filling = info->filling.GetCurrentFilling() + fillingDelta;
                 else if (info->filling.GetTargetFilling() < info->filling.GetCurrentFilling())
@@ -215,7 +215,7 @@ namespace MaxsuDetectionMeter
         }
 
         static constexpr ImGuiWindowFlags windowFlag = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
-        RECT screenRect;
+        RECT screenRect{};
         IM_ASSERT(GetWindowRect(DKU_G_TARGETHWND, &screenRect));
         ImGui::SetNextWindowSize(ImVec2(std::abs(screenRect.right), std::abs(screenRect.bottom)));
         ImGui::SetNextWindowPos(ImVec2(screenRect.left, screenRect.top));

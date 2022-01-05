@@ -31,6 +31,4 @@ namespace MaxsuDetectionMeter
 
 		return result;
 	}
-
-
 }
