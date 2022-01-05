@@ -10,7 +10,11 @@ namespace MaxsuDetectionMeter
 		auto camera = RE::PlayerCamera::GetSingleton();
 		auto cameraRoot = camera ? camera->cameraRoot : nullptr;
 
-		if (a_owner && a_target && a_target->IsPlayerRef() && a_target->IsSneaking() && a_owner->currentProcess && a_owner->currentProcess->high && cameraRoot) {
+		auto ctrlMap = RE::ControlMap::GetSingleton();
+
+		if (a_owner && a_target && a_target->IsPlayerRef() && a_target->IsSneaking() && a_owner->currentProcess && a_owner->currentProcess->high
+			&& cameraRoot && ctrlMap && ctrlMap->IsSneakingControlsEnabled() && ctrlMap->IsMovementControlsEnabled()) 
+		{
 			auto level = MeterHandler::ReCalculateDetectionLevel(result);
 			auto stealthPoint = MeterHandler::GetStealthPoint(a_owner);
 			const auto ownerID = a_owner->formID;

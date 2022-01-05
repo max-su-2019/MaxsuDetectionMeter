@@ -27,10 +27,10 @@ namespace MaxsuDetectionMeter
 		const float		minFillingSpeed = 0.25f;
 		const float		maxFillingSpeed = 0.95f;
 
-		const std::int32_t minTriggerLevel = 20;
+		const std::int32_t minTriggerLevel = 25;
 
-		const float radiusX = 500.f;
-		const float radiusY = 300.f;
+		const float radiusX = 350.f;
+		const float radiusY = 350.f;
 
 	private:
 		MeterHandler() = default;

@@ -70,7 +70,7 @@ namespace MaxsuDetectionMeter
 			return false;
 
 		//Update AlphaInfo
-		a_stealthPoints.has_value() && a_stealthPoints.value() >= 15.f ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
+		a_stealthPoints.has_value() && a_stealthPoints.value() > 0.f ? this->alpha.SetFadeAction(FadeType::KFadeIn), this->alpha.SetValue(max(155, this->alpha.GetCurrentValue())): this->alpha.SetFadeAction(FadeType::KFadeOut);
 
 		//Update Flashing
 		if(a_stealthPoints.has_value() && a_stealthPoints.value() >= 99.9f)
@@ -106,37 +106,8 @@ namespace MaxsuDetectionMeter
 		auto stealthPoints = MeterHandler::GetStealthPoint(a_owner);
 
 		for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
-			if (!infos[type])
+			if (!infos[type] || !infos[type]->Update(a_owner,level,stealthPoints))
 				return false;
-
-			switch (type) {
-			case MeterType::kFrame: {
-				FrameMeterInfo* meter = dynamic_cast<FrameMeterInfo*>(infos[type].get());
-				if (meter->Update(a_owner, level, stealthPoints))
-					continue;
-				else
-					return false;
-			}
-
-			case MeterType::kNormal: {
-				NormalMeterInfo* meter = dynamic_cast<NormalMeterInfo*>(infos[type].get());
-				if (meter->Update(a_owner, level, stealthPoints))
-					continue;
-				else
-					return false;
-			}
-
-			case MeterType::kCombat: {
-				CombatMeterInfo* meter = dynamic_cast<CombatMeterInfo*>(infos[type].get());
-				if (meter->Update(a_owner, level, stealthPoints))
-					continue;
-				else
-					return false;
-			}
-
-			default:
-				break;
-			}
 		}
 
 		return true;
