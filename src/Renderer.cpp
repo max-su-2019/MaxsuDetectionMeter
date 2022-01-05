@@ -216,7 +216,11 @@ namespace MaxsuDetectionMeter
 
         static constexpr ImGuiWindowFlags windowFlag = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
         RECT screenRect{};
-        IM_ASSERT(GetWindowRect(DKU_G_TARGETHWND, &screenRect));
+        if (!GetWindowRect(DKU_G_TARGETHWND, &screenRect)) {
+            logger::error("Not Window Rect get!");
+            return;
+        }
+
         ImGui::SetNextWindowSize(ImVec2(std::abs(screenRect.right), std::abs(screenRect.bottom)));
         ImGui::SetNextWindowPos(ImVec2(screenRect.left, screenRect.top));
 
