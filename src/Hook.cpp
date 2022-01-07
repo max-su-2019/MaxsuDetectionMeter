@@ -43,7 +43,7 @@ namespace MaxsuDetectionMeter
 	{
 		_ActorUpdate(a_actor, a_delta);
 
-		if (a_actor) {
+		if (a_actor && !a_actor->IsPlayerRef()) {
 			auto meterHandler = MeterHandler::GetSingleton();
 			auto it = meterHandler->meterArr.find(a_actor->formID);
 			if (it != meterHandler->meterArr.end() && it->second.load()) {

@@ -12,6 +12,8 @@
 
 namespace MaxsuDetectionMeter
 {
+    bool Renderer::ShowMeters = false;
+
     // Simple helper function to load an image into a DX11 texture with common settings
     static bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, std::int32_t& out_width, std::int32_t& out_height)
     {
@@ -196,7 +198,7 @@ namespace MaxsuDetectionMeter
 
 	void Renderer::DrawMeters()
 	{
-        if (GetActiveWindow() != DKU_G_TARGETHWND)
+        if (!ShowMeters || GetActiveWindow() != DKU_G_TARGETHWND)
             return;
 
         auto UI = RE::UI::GetSingleton();
@@ -239,10 +241,11 @@ namespace MaxsuDetectionMeter
         ImGui::End();
 	}
 
-    void Renderer::AddCallback(SKSE::MessagingInterface::Message* msg)  //CallBack & LoadTextureFromFile should called after resource loaded.
+    void Renderer::MessageCallback(SKSE::MessagingInterface::Message* msg)  //CallBack & LoadTextureFromFile should called after resource loaded.
     {
         if (msg->type == SKSE::MessagingInterface::kDataLoaded)
         {
+            // Read Texture only after game engine finished load all it renderer resource.
             bool ret1 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_NonHostile.png", &meterset[MeterType::kNormal].my_texture, meterset[MeterType::kNormal].my_image_width, meterset[MeterType::kNormal].my_image_height);
             IM_ASSERT(ret1);
 
@@ -252,6 +255,15 @@ namespace MaxsuDetectionMeter
             bool ret3 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_Hostile.png", &meterset[MeterType::kCombat].my_texture, meterset[MeterType::kCombat].my_image_width, meterset[MeterType::kCombat].my_image_height);
             IM_ASSERT(ret3);
 
+            ShowMeters = true;
+        }
+        else if (msg->type == SKSE::MessagingInterface::kPreLoadGame) {
+            DKUtil::GUI::RemoveCallback(FUNC_INFO(DrawMeters));
+
+            auto meterHandler = MeterHandler::GetSingleton();
+            if (meterHandler)
+                meterHandler->meterArr.clear();
+
             DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
         }
     }
@@ -259,7 +271,8 @@ namespace MaxsuDetectionMeter
     bool Renderer::Install()
     {
         DKUtil::GUI::InitD3D();      //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
-        DKUtil::GUI::InitImGui();    //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
+        DKUtil::GUI::InitImGui();   //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
+        DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
 
         INFO("GUI Init!"sv);
 
@@ -270,7 +283,7 @@ namespace MaxsuDetectionMeter
             return false;
         }
 
-        g_message->RegisterListener(AddCallback);
+        g_message->RegisterListener(MessageCallback);
 
         return true;
     }

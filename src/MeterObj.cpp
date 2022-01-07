@@ -14,15 +14,17 @@ namespace MaxsuDetectionMeter
 	{
 		auto meterHandler = MeterHandler::GetSingleton();
 
-		if (a_owner) {
+		auto playerRef = RE::PlayerCharacter::GetSingleton();
+
+		if (a_owner && playerRef) {
 			if (this->alpha.GetFadeAction() == FadeType::KFadeOut && this->alpha.GetCurrentValue() == 0)	//Check if meter is compelery fade out.
 				return false;
 
 			//Update AlphaInfo
-			if (a_stealthPoints.has_value()) 
+			if (a_stealthPoints.has_value() || a_level >= 100)
 				this->alpha.SetFadeAction(FadeType::KFadeIn);	//Frame Meter always shown when in combat state
 			else
-				a_level >= meterHandler->minTriggerLevel ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);	
+				a_level >= meterHandler->minTriggerLevel && (a_owner->HasLOS(playerRef) || playerRef->HasLOS(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
 
 			return true;
 		}
@@ -38,6 +40,10 @@ namespace MaxsuDetectionMeter
 		if (!a_owner)
 			return false;
 
+		auto playerRef = RE::PlayerCharacter::GetSingleton();
+		if (!playerRef)
+			return false;
+
 		//Update AlphaInfo
 		if (a_stealthPoints.has_value()) {
 			//Always hide non-combat meter when in combat state.
@@ -45,7 +51,7 @@ namespace MaxsuDetectionMeter
 			this->alpha.SetValue(0);
 		}
 		else
-			a_level >= meterHandler->minTriggerLevel ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut); 
+			a_level >= meterHandler->minTriggerLevel && (a_level >= 100 || a_owner->HasLOS(playerRef) || playerRef->HasLOS(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
 		
 		//Update Flashing
 		if (a_level >= 100 && !a_stealthPoints.has_value())
@@ -54,7 +60,7 @@ namespace MaxsuDetectionMeter
 			this->flashing.SetFlashingStart(false);
 	
 		//Update Filling
-		if (!a_stealthPoints.has_value()) {
+		if (!a_stealthPoints.has_value() && this->alpha.GetFadeAction() == FadeType::KFadeIn) {
 			this->filling.SetTargetFilling(a_level / 100.f);
 		}
 		else
@@ -84,6 +90,7 @@ namespace MaxsuDetectionMeter
 		return true;
 	}
 
+
 	bool MeterObj::Update(RE::Actor* a_owner)
 	{
 		if (!a_owner || !a_owner->currentProcess || !a_owner->currentProcess->high || !a_owner->currentProcess->InHighProcess())
@@ -104,11 +111,12 @@ namespace MaxsuDetectionMeter
 		auto const level = MeterHandler::ReCalculateDetectionLevel(a_owner->RequestDetectionLevel(playerRef));
 
 		auto stealthPoints = MeterHandler::GetStealthPoint(a_owner);
-		if (!stealthPoints.has_value() && playerRef->IsInCombat())	//Remove non-combat meters when player in combat state.
+
+		if (!a_owner->GetCombatGroup() && playerRef->IsInCombat())	//Remove non-combat meters when player in combat state.
 			return false;
 
-		for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
-			if (!infos[type] || !infos[type]->Update(a_owner,level,stealthPoints))
+		for (auto& info : infos) {
+			if (!info || !info->Update(a_owner,level,stealthPoints))
 				return false;
 		}
 

@@ -8,10 +8,10 @@ namespace MaxsuDetectionMeter
 		Renderer() = delete;
 
 		static void DrawMeters();	//Rendering Meters.
-		static void AddCallback(SKSE::MessagingInterface::Message* msg);
+		static void MessageCallback(SKSE::MessagingInterface::Message* msg);
 
+		static bool ShowMeters;
 	public:
 		static bool Install();
 	};
-
 }

@@ -29,8 +29,8 @@ namespace MaxsuDetectionMeter
 
 		const std::int32_t minTriggerLevel = 25;
 
-		const float radiusX = 380.f;
-		const float radiusY = 380.f;
+		const float radiusX = 350.f;
+		const float radiusY = 350.f;
 
 	private:
 		MeterHandler() = default;
