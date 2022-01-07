@@ -73,7 +73,7 @@ namespace MaxsuDetectionMeter
 
 		MeterInfo() = default;
 
-		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) = 0;
+		virtual bool Update(RE::Actor* a_owner,const float a_angle, std::int32_t a_level, std::optional<float> a_stealthPoints) = 0;
 
 		AlphaInfo		alpha;
 		FillingInfo		filling;
@@ -87,7 +87,7 @@ namespace MaxsuDetectionMeter
 	public:
 		FrameMeterInfo();
 
-		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
+		virtual bool Update(RE::Actor* a_owner, const float a_angle, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
 	};
 
 
@@ -96,7 +96,7 @@ namespace MaxsuDetectionMeter
 	public:
 		NormalMeterInfo() = default;
 
-		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
+		virtual bool Update(RE::Actor* a_owner, const float a_angle, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
 	};
 
 
@@ -105,7 +105,7 @@ namespace MaxsuDetectionMeter
 	public:
 		CombatMeterInfo() = default;
 
-		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
+		virtual bool Update(RE::Actor* a_owner, const float a_angle, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
 	};
 
 
