@@ -271,6 +271,7 @@ namespace MaxsuDetectionMeter
     bool Renderer::Install()
     {
         DKUtil::GUI::InitD3D();      //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
+        DKUtil::GUI::InitImGui();   //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
         DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
 
         INFO("GUI Init!"sv);

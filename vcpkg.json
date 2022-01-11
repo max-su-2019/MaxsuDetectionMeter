@@ -1,6 +1,6 @@
 {
     "name":  "maxsudetectionmeter",
-    "version-string":  "0.0.3",
+    "version-string":  "0.0.2",
     "description":  "",
     "license":  "MIT",
     "dependencies":  [

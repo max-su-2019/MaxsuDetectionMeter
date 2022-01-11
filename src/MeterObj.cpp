@@ -10,7 +10,7 @@ namespace MaxsuDetectionMeter
 		this->filling.SetCurrentFilling(1.0f);
 	}
 
-	bool FrameMeterInfo::Update(RE::Actor* a_owner, const float a_angle, std::int32_t a_level, std::optional<float> a_stealthPoints)
+	bool FrameMeterInfo::Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints)
 	{
 		auto meterHandler = MeterHandler::GetSingleton();
 
@@ -33,7 +33,7 @@ namespace MaxsuDetectionMeter
 	}
 
 
-	bool NormalMeterInfo::Update(RE::Actor* a_owner, const float a_angle, std::int32_t a_level, std::optional<float> a_stealthPoints)
+	bool NormalMeterInfo::Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints)
 	{
 		auto meterHandler = MeterHandler::GetSingleton();
 
@@ -70,7 +70,7 @@ namespace MaxsuDetectionMeter
 	}
 
 
-	bool CombatMeterInfo::Update(RE::Actor* a_owner, const float, std::int32_t, std::optional<float> a_stealthPoints)
+	bool CombatMeterInfo::Update(RE::Actor* a_owner, std::int32_t, std::optional<float> a_stealthPoints)
 	{
 		if (!a_owner)
 			return false;
