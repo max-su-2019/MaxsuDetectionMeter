@@ -121,7 +121,7 @@ namespace MaxsuDetectionMeter
 			infos[MeterType::kCombat] = std::make_shared<CombatMeterInfo>();
 		}
 
-		bool Update(RE::Actor* a_owner);
+		bool Update(RE::Actor* a_owner, const float a_angle, const std::int32_t a_level);
 		void MarkForRemove() { shouldRemove = true; }
 		bool ShouldRemove() const { return shouldRemove; }
 

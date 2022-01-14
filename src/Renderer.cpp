@@ -107,7 +107,7 @@ namespace MaxsuDetectionMeter
         
         auto targActor = RE::TESForm::LookupByID<RE::Actor>(a_meterPair.first);
        
-        if (!targActor || !targActor->currentProcess || !targActor->currentProcess->high || !targActor->currentProcess->InHighProcess())
+        if (!targActor || targActor->IsDead() || !targActor->currentProcess || !targActor->currentProcess->high || !targActor->currentProcess->InHighProcess())
             return false;
         
         auto meterObj = a_meterPair.second.load();;
@@ -230,6 +230,7 @@ namespace MaxsuDetectionMeter
 
         auto const centerPos = ImVec2(0.5f * std::abs(screenRect.right - screenRect.left), 0.5f * std::abs(screenRect.top - screenRect.bottom));
 
+        std::scoped_lock lock(meterHandler->m_mutex);
         auto it = meterHandler->meterArr.begin();
         while (it != meterHandler->meterArr.end()) {
             if (DrawSingleMeter(*it, centerPos))
@@ -271,7 +272,6 @@ namespace MaxsuDetectionMeter
     bool Renderer::Install()
     {
         DKUtil::GUI::InitD3D();      //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
-        DKUtil::GUI::InitImGui();   //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
         DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
 
         INFO("GUI Init!"sv);

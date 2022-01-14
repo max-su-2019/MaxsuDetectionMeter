@@ -24,7 +24,7 @@ namespace MaxsuDetectionMeter
 			if (a_stealthPoints.has_value() || a_level >= 100)
 				this->alpha.SetFadeAction(FadeType::KFadeIn);	//Frame Meter always shown when in combat state
 			else
-				a_level >= meterHandler->minTriggerLevel && (a_owner->HasLOS(playerRef) || playerRef->HasLOS(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
+				a_level >= meterHandler->minTriggerLevel && (a_owner->HasLOS(playerRef) || MeterHandler::HeadTarckingOnPlayer(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
 
 			return true;
 		}
@@ -51,7 +51,7 @@ namespace MaxsuDetectionMeter
 			this->alpha.SetValue(0);
 		}
 		else
-			a_level >= meterHandler->minTriggerLevel && (a_level >= 100 || a_owner->HasLOS(playerRef) || playerRef->HasLOS(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
+			a_level >= meterHandler->minTriggerLevel && (a_level >= 100 || a_owner->HasLOS(playerRef) || MeterHandler::HeadTarckingOnPlayer(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
 		
 		//Update Flashing
 		if (a_level >= 100 && !a_stealthPoints.has_value())
@@ -91,32 +91,23 @@ namespace MaxsuDetectionMeter
 	}
 
 
-	bool MeterObj::Update(RE::Actor* a_owner)
+	bool MeterObj::Update(RE::Actor* a_owner, const float a_angle, const std::int32_t a_level) 
 	{
-		if (!a_owner || !a_owner->currentProcess || !a_owner->currentProcess->high || !a_owner->currentProcess->InHighProcess())
+		if (!a_owner || a_owner->IsDead() || !a_owner->currentProcess || !a_owner->currentProcess->high || !a_owner->currentProcess->InHighProcess())
 			return false;
 
 		auto playerRef = RE::PlayerCharacter::GetSingleton();
 		if (!playerRef)
 			return false;
 
-		auto camera = RE::PlayerCamera::GetSingleton();
-		auto cameraRoot = camera ? camera->cameraRoot : nullptr;
-		if (!cameraRoot)
-			return false;
-
-		auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, playerRef->GetPosition());
-		headingAngle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
-
-		auto const level = MeterHandler::ReCalculateDetectionLevel(a_owner->RequestDetectionLevel(playerRef));
-
+		headingAngle = a_angle;
 		auto stealthPoints = MeterHandler::GetStealthPoint(a_owner);
 
 		if (!a_owner->GetCombatGroup() && playerRef->IsInCombat())	//Remove non-combat meters when player in combat state.
 			return false;
 
 		for (auto& info : infos) {
-			if (!info || !info->Update(a_owner,level,stealthPoints))
+			if (!info || !info->Update(a_owner, a_level,stealthPoints))
 				return false;
 		}
 

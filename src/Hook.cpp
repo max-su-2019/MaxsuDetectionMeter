@@ -3,54 +3,45 @@
 
 namespace MaxsuDetectionMeter
 {
-	std::int32_t DetectionLevelHook::RequestDetectionLevel(RE::Actor* a_owner, RE::Actor* a_target, RE::DETECTION_PRIORITY a_priority)
+	void ActorUpdateHook::ActorUpdate(RE::Actor* a_owner, float a_delta)
 	{
-		auto result = _RequestDetectionLevel(a_owner, a_target, a_priority);
-
+		auto target = RE::PlayerCharacter::GetSingleton();
 		auto camera = RE::PlayerCamera::GetSingleton();
 		auto cameraRoot = camera ? camera->cameraRoot : nullptr;
 
 		auto ctrlMap = RE::ControlMap::GetSingleton();
 
-		if (a_owner && a_target && a_target->IsPlayerRef() && a_target->IsSneaking() && a_owner->currentProcess && a_owner->currentProcess->high
-			&& cameraRoot && ctrlMap && ctrlMap->IsSneakingControlsEnabled() && ctrlMap->IsMovementControlsEnabled()) 
-		{
-			auto level = MeterHandler::ReCalculateDetectionLevel(result);
+		if (target && target->IsSneaking() && a_owner && !a_owner->IsPlayerRef() && !a_owner->IsDead() && a_owner->currentProcess && a_owner->currentProcess->high
+			&& cameraRoot && ctrlMap && ctrlMap->IsSneakingControlsEnabled() && ctrlMap->IsMovementControlsEnabled()) {
+
+			auto level = MeterHandler::ReCalculateDetectionLevel(a_owner->RequestDetectionLevel(target));
 			auto stealthPoint = MeterHandler::GetStealthPoint(a_owner);
 			const auto ownerID = a_owner->formID;
 			auto meterHandler = MeterHandler::GetSingleton();
 
-			auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, a_target->GetPosition());
+			auto CamTrans = RE::NiTransform(cameraRoot->world.rotate, target->GetPosition());
 			auto const angle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
 
-			if (meterHandler->meterArr.count(ownerID))
-				return result;
-
-			if ( (!a_target->IsInCombat() && ((level >= meterHandler->minTriggerLevel && a_owner->HasLOS(a_target)) || level >= 100)) ||
-				(a_target->IsInCombat() && stealthPoint.has_value()) 
-			   ) {
-				auto meterObj = std::make_shared<MeterObj>(angle);
-				meterHandler->meterArr.emplace(ownerID, meterObj);
-				logger::debug("Add a Meter ID : {:x}", ownerID);
+			if (!meterHandler->meterArr.count(ownerID)) {
+				if ( (!target->IsInCombat() && ((level >= meterHandler->minTriggerLevel && a_owner->HasLOS(target)) || level >= 100)) ||
+					(target->IsInCombat() && stealthPoint.has_value()) ) 
+				{
+					std::scoped_lock lock(meterHandler->m_mutex);
+					auto meterObj = std::make_shared<MeterObj>(angle);
+					meterHandler->meterArr.emplace(ownerID, meterObj);
+					logger::debug("Add a Meter ID : {:x}", ownerID);	
+				}
 			}
-		}
-			
-		return result;
-	}
-
-
-	void ActorUpdateHook::ActorUpdate(RE::Actor* a_actor, float a_delta)
-	{
-		_ActorUpdate(a_actor, a_delta);
-
-		if (a_actor && !a_actor->IsPlayerRef()) {
-			auto meterHandler = MeterHandler::GetSingleton();
-			auto it = meterHandler->meterArr.find(a_actor->formID);
-			if (it != meterHandler->meterArr.end() && it->second.load()) {
-				if (!it->second.load()->Update(a_actor)) {
-					it->second.load()->MarkForRemove();
+			else {
+				auto it = meterHandler->meterArr.find(a_owner->formID);
+				if (it != meterHandler->meterArr.end() && it->second.load()) {
+					if (!it->second.load()->Update(a_owner,angle,level)) {
+						it->second.load()->MarkForRemove();
+					}
 				}
 			}
 		}
+
+		_ActorUpdate(a_owner, a_delta);
 	}
 }

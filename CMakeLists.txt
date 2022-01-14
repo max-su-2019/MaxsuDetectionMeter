@@ -12,7 +12,7 @@ endif()
 # info
 project(
 	MaxsuDetectionMeter
-	VERSION 0.0.2
+	VERSION 0.0.4
 	LANGUAGES CXX
 )
 

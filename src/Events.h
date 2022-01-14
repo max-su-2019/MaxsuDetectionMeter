@@ -11,19 +11,6 @@ namespace MaxsuDetectionMeter
 			if (a_event->opening && a_event->menuName == RE::InterfaceStrings::GetSingleton()->console) {
 				auto targetRef = RE::Console::GetSelectedRef() ? RE::Console::GetSelectedRef()->As<RE::Actor>() : nullptr;
 				auto playerRef = RE::PlayerCharacter::GetSingleton();
-				if (targetRef && playerRef ) {
-					auto group = targetRef->GetCombatGroup();
-					if (group) {
-						for (auto target : group->targets) {
-							if (target.targetHandle && target.targetHandle.get() && target.targetHandle.get()->IsPlayerRef()) {
-								auto searchState = group->searchState;
-								auto detectionLevel = target.detectLevel;
-								auto stealthPoint = target.attackedStealthPoints;
-								logger::debug("Searach State is {}, detectionLevel is {}, stealthPoint is {}", searchState, detectionLevel, stealthPoint);
-							}
-						}
-					}
-				}
 			}
 
 			return RE::BSEventNotifyControl::kContinue;

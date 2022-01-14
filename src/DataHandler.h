@@ -16,6 +16,7 @@ namespace MaxsuDetectionMeter
 
 		static std::int32_t ReCalculateDetectionLevel(std::int32_t a_level);
 		static std::optional<float> GetStealthPoint(RE::Actor* a_owner);
+		static bool HeadTarckingOnPlayer(RE::Actor* a_owner);
 		
 		std::map<RE::FormID, std::atomic<std::shared_ptr<MeterObj>>> meterArr;
 
@@ -31,6 +32,8 @@ namespace MaxsuDetectionMeter
 
 		const float radiusX = 350.f;
 		const float radiusY = 350.f;
+
+		mutable std::mutex m_mutex;
 
 	private:
 		MeterHandler() = default;
