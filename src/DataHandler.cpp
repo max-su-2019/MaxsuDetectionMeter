@@ -2,6 +2,12 @@
 
 namespace MaxsuDetectionMeter
 {
+	MeterHandler::MeterHandler()
+	{
+		meterSettings = std::make_unique<MeterSettings>();
+	}
+
+
 	std::int32_t MeterHandler::ReCalculateDetectionLevel(std::int32_t a_level)
 	{
 		if (a_level < 0) {

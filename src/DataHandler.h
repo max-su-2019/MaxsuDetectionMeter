@@ -1,5 +1,6 @@
 #pragma once
 #include "MeterObj.h"
+#include "MeterSettings.h"
 
 namespace MaxsuDetectionMeter
 {
@@ -20,23 +21,12 @@ namespace MaxsuDetectionMeter
 		
 		std::map<RE::FormID, std::atomic<std::shared_ptr<MeterObj>>> meterArr;
 
-		const float		fadeSpeed = 255.f;
-
-		const float		flashSpeed = 550.f;
-		const float		flashScale = 0.25f;
-
-		const float		minFillingSpeed = 0.35f;
-		const float		maxFillingSpeed = 0.95f;
-
-		const std::int32_t minTriggerLevel = 25;
-
-		const float radiusX = 350.f;
-		const float radiusY = 350.f;
+		std::unique_ptr<const MeterSettings> meterSettings;
 
 		mutable std::mutex m_mutex;
 
 	private:
-		MeterHandler() = default;
+		MeterHandler();
 
 		~MeterHandler() = default;
 

@@ -24,7 +24,7 @@ namespace MaxsuDetectionMeter
 			if (a_stealthPoints.has_value() || a_level >= 100)
 				this->alpha.SetFadeAction(FadeType::KFadeIn);	//Frame Meter always shown when in combat state
 			else
-				a_level >= meterHandler->minTriggerLevel && (a_owner->HasLOS(playerRef) || MeterHandler::HeadTarckingOnPlayer(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
+				a_level >= meterHandler->meterSettings->minTriggerLevel.get_data() && (a_owner->HasLOS(playerRef) || MeterHandler::HeadTarckingOnPlayer(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
 
 			return true;
 		}
@@ -51,7 +51,7 @@ namespace MaxsuDetectionMeter
 			this->alpha.SetValue(0);
 		}
 		else
-			a_level >= meterHandler->minTriggerLevel && (a_level >= 100 || a_owner->HasLOS(playerRef) || MeterHandler::HeadTarckingOnPlayer(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
+			a_level >= meterHandler->meterSettings->minTriggerLevel.get_data() && (a_level >= 100 || a_owner->HasLOS(playerRef) || MeterHandler::HeadTarckingOnPlayer(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
 		
 		//Update Flashing
 		if (a_level >= 100 && !a_stealthPoints.has_value())

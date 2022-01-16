@@ -118,8 +118,8 @@ namespace MaxsuDetectionMeter
         auto meterHandler = MeterHandler::GetSingleton();
        
         const auto angle = meterObj->headingAngle;
-        const float offsetX = meterHandler->radiusX * std::sin(angle * 3.14f / 180.f);
-        const float offsetY = -meterHandler->radiusY * std::cos(angle * 3.14f / 180.f);
+        const float offsetX = meterHandler->meterSettings->radiusX.get_data() * std::sin(angle * 3.14f / 180.f);
+        const float offsetY = -meterHandler->meterSettings->radiusY.get_data() * std::cos(angle * 3.14f / 180.f);
         
         for (std::uint32_t type = MeterType::kFrame; type < MeterType::kTotal; type++) {
             auto info = meterObj->infos[type];
@@ -131,14 +131,14 @@ namespace MaxsuDetectionMeter
             {
             case fadeAction::KFadeIn: {
                 std::int32_t alphaValue = 0;
-                alphaValue = std::clamp(info->alpha.GetCurrentValue() + ImGui::GetIO().DeltaTime * meterHandler->fadeSpeed, 0.f, 255.f);
+                alphaValue = std::clamp(float(info->alpha.GetCurrentValue() + ImGui::GetIO().DeltaTime * meterHandler->meterSettings->fadeSpeed.get_data()), 0.f, 255.f);
                 info->alpha.SetValue(alphaValue);
                 break;
             }
 
             case fadeAction::KFadeOut: {
                 std::int32_t alphaValue = 0;
-                alphaValue = std::clamp(info->alpha.GetCurrentValue() - ImGui::GetIO().DeltaTime * meterHandler->fadeSpeed, 0.f, 255.f);
+                alphaValue = std::clamp(float(info->alpha.GetCurrentValue() - ImGui::GetIO().DeltaTime * meterHandler->meterSettings->fadeSpeed.get_data()), 0.f, 255.f);
                 info->alpha.SetValue(alphaValue);
                 break;
             }
@@ -153,7 +153,7 @@ namespace MaxsuDetectionMeter
             float filling = 0.f;
            
             if (abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) > 1e-6) {
-                float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) / info->filling.GetCurrentFilling(), meterHandler->minFillingSpeed, meterHandler->maxFillingSpeed);
+                float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) / info->filling.GetCurrentFilling(), float(meterHandler->meterSettings->minFillingSpeed.get_data()), float(meterHandler->meterSettings->maxFillingSpeed.get_data()));
                 if (info->filling.GetTargetFilling() > info->filling.GetCurrentFilling())
                     filling = info->filling.GetCurrentFilling() + fillingDelta;
                 else if (info->filling.GetTargetFilling() < info->filling.GetCurrentFilling())
@@ -177,13 +177,13 @@ namespace MaxsuDetectionMeter
                 else if (info->flashing.GetCurrentValue() <= 0)
                     info->flashing.SetFadeAction(fadeAction::KFadeIn);
         
-                float flashDelta = info->flashing.GetFadeAction() == fadeAction::KFadeIn ? ImGui::GetIO().DeltaTime * meterHandler->flashSpeed : -ImGui::GetIO().DeltaTime * meterHandler->flashSpeed;
+                float flashDelta = info->flashing.GetFadeAction() == fadeAction::KFadeIn ? ImGui::GetIO().DeltaTime * meterHandler->meterSettings->flashSpeed.get_data() : -ImGui::GetIO().DeltaTime * meterHandler->meterSettings->flashSpeed.get_data();
                 float flashValue = std::clamp(info->flashing.GetCurrentValue() + flashDelta, 0.f, 255.f);
                 info->flashing.SetValue(flashValue);
-                float size = 1.f + ((255.f - info->flashing.GetCurrentValue()) / 255.f) * meterHandler->flashScale;  //The lower the aplha, the bigger the size.
+                float size = 1.f + ((255.f - info->flashing.GetCurrentValue()) / 255.f) * meterHandler->meterSettings->flashScale.get_data();  //The lower the aplha, the bigger the size.
                 //-------------------------------------------------------------------------------------------------------------------------
 
-                const float flash_offsetY = -(meterHandler->radiusY + meterset[type].my_image_height * (size - 1.f)) * std::cos(angle * 3.14f / 180.f);
+                const float flash_offsetY = -(meterHandler->meterSettings->radiusY.get_data() + meterset[type].my_image_height * (size - 1.f)) * std::cos(angle * 3.14f / 180.f);
 
                 ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, flash_offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height) * size, angle, info->flashing.GetCurrentValue(), 1.0f);
             }
@@ -228,9 +228,12 @@ namespace MaxsuDetectionMeter
 
         ImGui::Begin("Maxsu_DetectionMeter",nullptr, windowFlag);
 
-        auto const centerPos = ImVec2(0.5f * std::abs(screenRect.right - screenRect.left), 0.5f * std::abs(screenRect.top - screenRect.bottom));
+        auto const centerPos = ImVec2(
+            0.5f * std::abs(screenRect.right - screenRect.left) + meterHandler->meterSettings->centerOffsetX.get_data(),
+            0.5f * std::abs(screenRect.top - screenRect.bottom) + meterHandler->meterSettings->centerOffsetY.get_data()
+            );
 
-        std::scoped_lock lock(meterHandler->m_mutex);
+        std::scoped_lock lock(meterHandler->m_mutex);   //thread mutex lock
         auto it = meterHandler->meterArr.begin();
         while (it != meterHandler->meterArr.end()) {
             if (DrawSingleMeter(*it, centerPos))
@@ -255,6 +258,12 @@ namespace MaxsuDetectionMeter
 
             bool ret3 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_Hostile.png", &meterset[MeterType::kCombat].my_texture, meterset[MeterType::kCombat].my_image_width, meterset[MeterType::kCombat].my_image_height);
             IM_ASSERT(ret3);
+
+            auto meterHandler = MeterHandler::GetSingleton();
+            if (meterHandler->meterSettings->enableDebugLog.get_data()) {
+                spdlog::set_level(spdlog::level::debug);
+                logger::debug("Enable Debug Log!");
+            }
 
             ShowMeters = true;
         }
