@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "DataHandler.h"
 
+#define DKU_G_DEBUG
 #include "DKUTil/GUI.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -152,7 +153,7 @@ namespace MaxsuDetectionMeter
             //-------------------------------------------- Update Filling ------------------------------------------------------------
             float filling = 0.f;
            
-            if (abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) > 1e-6) {
+            if (abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) > 0.01f) {
                 float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) / info->filling.GetCurrentFilling(), float(meterHandler->meterSettings->minFillingSpeed.get_data()), float(meterHandler->meterSettings->maxFillingSpeed.get_data()));
                 if (info->filling.GetTargetFilling() > info->filling.GetCurrentFilling())
                     filling = info->filling.GetCurrentFilling() + fillingDelta;
@@ -271,8 +272,10 @@ namespace MaxsuDetectionMeter
             DKUtil::GUI::RemoveCallback(FUNC_INFO(DrawMeters));
 
             auto meterHandler = MeterHandler::GetSingleton();
-            if (meterHandler)
+            if (meterHandler) {
+                std::scoped_lock lock(meterHandler->m_mutex);   //thread mutex lock
                 meterHandler->meterArr.clear();
+            }
 
             DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
         }

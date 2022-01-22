@@ -1,4 +1,3 @@
-#include "DKUtil/Hook.hpp"
 
 namespace MaxsuDetectionMeter
 {

@@ -93,7 +93,7 @@ namespace MaxsuDetectionMeter
 
 	bool MeterObj::Update(RE::Actor* a_owner, const float a_angle, const std::int32_t a_level) 
 	{
-		if (!a_owner || a_owner->IsDead() || !a_owner->currentProcess || !a_owner->currentProcess->high || !a_owner->currentProcess->InHighProcess())
+		if (!a_owner || a_owner->IsDead() || a_owner->NotShowOnStealthMeter() || a_owner->IsPlayerTeammate() || a_owner->IsSummonedByPlayer() || !a_owner->currentProcess || !a_owner->currentProcess->high || !a_owner->currentProcess->InHighProcess())
 			return false;
 
 		auto playerRef = RE::PlayerCharacter::GetSingleton();

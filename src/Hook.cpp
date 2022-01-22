@@ -11,8 +11,8 @@ namespace MaxsuDetectionMeter
 
 		auto ctrlMap = RE::ControlMap::GetSingleton();
 
-		if (target && target->IsSneaking() && a_owner && !a_owner->IsPlayerRef() && !a_owner->IsDead() && a_owner->currentProcess && a_owner->currentProcess->high
-			&& cameraRoot && ctrlMap && ctrlMap->IsSneakingControlsEnabled() && ctrlMap->IsMovementControlsEnabled()) {
+		if (target && target->IsSneaking() && a_owner && !a_owner->IsPlayerRef() && !a_owner->IsDead() && !a_owner->NotShowOnStealthMeter() && !a_owner->IsPlayerTeammate() && !a_owner->IsSummonedByPlayer() &&
+			a_owner->currentProcess && a_owner->currentProcess->high && cameraRoot && ctrlMap && ctrlMap->IsSneakingControlsEnabled() && ctrlMap->IsMovementControlsEnabled()) {
 
 			auto level = MeterHandler::ReCalculateDetectionLevel(a_owner->RequestDetectionLevel(target));
 			auto stealthPoint = MeterHandler::GetStealthPoint(a_owner);
