@@ -15,6 +15,7 @@ namespace MaxsuDetectionMeter
 			return std::addressof(singleton);
 		}
 
+		static bool ShouldDisplayMeter(RE::Actor* a_owner);
 		static std::int32_t ReCalculateDetectionLevel(std::int32_t a_level);
 		static std::optional<float> GetStealthPoint(RE::Actor* a_owner);
 		static bool HeadTarckingOnPlayer(RE::Actor* a_owner);

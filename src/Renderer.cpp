@@ -108,7 +108,7 @@ namespace MaxsuDetectionMeter
         
         auto targActor = RE::TESForm::LookupByID<RE::Actor>(a_meterPair.first);
        
-        if (!targActor || targActor->IsDead() || !targActor->currentProcess || !targActor->currentProcess->high || !targActor->currentProcess->InHighProcess())
+        if (!MeterHandler::ShouldDisplayMeter(targActor))
             return false;
         
         auto meterObj = a_meterPair.second.load();;
@@ -232,7 +232,7 @@ namespace MaxsuDetectionMeter
         auto const centerPos = ImVec2(
             0.5f * std::abs(screenRect.right - screenRect.left) + meterHandler->meterSettings->centerOffsetX.get_data(),
             0.5f * std::abs(screenRect.top - screenRect.bottom) + meterHandler->meterSettings->centerOffsetY.get_data()
-            );
+        );
 
         std::scoped_lock lock(meterHandler->m_mutex);   //thread mutex lock
         auto it = meterHandler->meterArr.begin();

@@ -33,6 +33,4 @@ namespace MaxsuDetectionMeter
 		PrintSettingValue(centerOffsetY.get_key(), centerOffsetY.get_data());
 	}
 
-
-
 }

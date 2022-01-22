@@ -8,6 +8,12 @@ namespace MaxsuDetectionMeter
 	}
 
 
+	bool MeterHandler::ShouldDisplayMeter(RE::Actor* a_owner)
+	{
+		return a_owner && !a_owner->IsPlayerRef() && !a_owner->IsDead() && a_owner->Is3DLoaded() && !a_owner->NotShowOnStealthMeter() && 
+			!a_owner->IsPlayerTeammate() && !a_owner->IsSummonedByPlayer() && a_owner->currentProcess && a_owner->currentProcess->high;
+	}
+
 	std::int32_t MeterHandler::ReCalculateDetectionLevel(std::int32_t a_level)
 	{
 		if (a_level < 0) {
