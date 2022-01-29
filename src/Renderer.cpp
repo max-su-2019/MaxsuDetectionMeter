@@ -154,7 +154,10 @@ namespace MaxsuDetectionMeter
             float filling = 0.f;
            
             if (abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) > 0.01f) {
-                float fillingDelta = ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) / info->filling.GetCurrentFilling(), float(meterHandler->meterSettings->minFillingSpeed.get_data()), float(meterHandler->meterSettings->maxFillingSpeed.get_data()));
+                float fillingDelta = info->filling.GetTargetFilling() >= 1.0f ?
+                    ImGui::GetIO().DeltaTime * meterHandler->meterSettings->maxFillingSpeed.get_data() :
+                    ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) / info->filling.GetCurrentFilling(), float(meterHandler->meterSettings->minFillingSpeed.get_data()), float(meterHandler->meterSettings->maxFillingSpeed.get_data()));
+
                 if (info->filling.GetTargetFilling() > info->filling.GetCurrentFilling())
                     filling = info->filling.GetCurrentFilling() + fillingDelta;
                 else if (info->filling.GetTargetFilling() < info->filling.GetCurrentFilling())
@@ -171,7 +174,7 @@ namespace MaxsuDetectionMeter
             ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height), angle, info->alpha.GetCurrentValue(), info->filling.GetCurrentFilling());
 
             //Draw Flashing Meter
-            if (info->flashing.IsFlashingStart() && info->filling.GetCurrentFilling() == 1.0f) {
+            if (info->flashing.IsFlashingStart() && info->filling.GetCurrentFilling() >= 1.0f) {
                 //-------------------------------------------- Update Flashing ------------------------------------------------------------
                 if (info->flashing.GetCurrentValue() >= 255)
                     info->flashing.SetFadeAction(fadeAction::KFadeOut);
