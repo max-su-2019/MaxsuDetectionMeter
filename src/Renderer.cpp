@@ -251,8 +251,13 @@ namespace MaxsuDetectionMeter
 
     void Renderer::MessageCallback(SKSE::MessagingInterface::Message* msg)  //CallBack & LoadTextureFromFile should called after resource loaded.
     {
-        if (msg->type == SKSE::MessagingInterface::kDataLoaded)
-        {
+        if (msg->type == SKSE::MessagingInterface::kInputLoaded){
+            DKUtil::GUI::InitD3D();      //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
+            DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
+
+            INFO("GUI Init!"sv);
+        }
+        else if (msg->type == SKSE::MessagingInterface::kDataLoaded){
             // Read Texture only after game engine finished load all it renderer resource.
             bool ret1 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_NonHostile.png", &meterset[MeterType::kNormal].my_texture, meterset[MeterType::kNormal].my_image_width, meterset[MeterType::kNormal].my_image_height);
             IM_ASSERT(ret1);
@@ -286,11 +291,6 @@ namespace MaxsuDetectionMeter
 
     bool Renderer::Install()
     {
-        DKUtil::GUI::InitD3D();      //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
-        DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
-
-        INFO("GUI Init!"sv);
-
         auto g_message = SKSE::GetMessagingInterface();
         if (!g_message)
         {
