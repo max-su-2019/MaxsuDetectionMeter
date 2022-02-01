@@ -181,9 +181,10 @@ namespace MaxsuDetectionMeter
                 float size = 1.f + ((255.f - info->flashing.GetCurrentValue()) / 255.f) * meterHandler->meterSettings->flashScale.get_data();  //The lower the aplha, the bigger the size.
                 //-------------------------------------------------------------------------------------------------------------------------
 
+                const float flash_offsetX = (meterHandler->meterSettings->radiusX.get_data() + meterset[type].my_image_height * (size - 1.f)) * std::sin(angle * 3.14f / 180.f);
                 const float flash_offsetY = -(meterHandler->meterSettings->radiusY.get_data() + meterset[type].my_image_height * (size - 1.f)) * std::cos(angle * 3.14f / 180.f);
 
-                ImageRotated(meterset[type].my_texture, centerPos + ImVec2(offsetX, flash_offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height) * size, angle, info->flashing.GetCurrentValue(), 1.0f);
+                ImageRotated(meterset[type].my_texture, centerPos + ImVec2(flash_offsetX, flash_offsetY), ImVec2(meterset[type].my_image_width, meterset[type].my_image_height) * size, angle, info->flashing.GetCurrentValue(), 1.0f);
             }
             else {
                 info->flashing.SetValue(255);
