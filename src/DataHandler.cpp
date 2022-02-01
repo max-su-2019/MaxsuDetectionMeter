@@ -1,10 +1,12 @@
 #include"DataHandler.h"
+#include "ConsoleCommands.h"
 
 namespace MaxsuDetectionMeter
 {
 	MeterHandler::MeterHandler()
 	{
 		meterSettings = std::make_unique<MeterSettings>();
+		ConsoleCommands::Register();
 	}
 
 

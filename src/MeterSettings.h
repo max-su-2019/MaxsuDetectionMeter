@@ -17,6 +17,8 @@ namespace MaxsuDetectionMeter
 	public:
 		MeterSettings();
 
+		void Reload() const;
+
 		Boolean enableDebugLog{ "EnableDebugLog", "Main" };
 
 		Double fadeSpeed{ "FadeSpeed", "AnimatedEffect" };

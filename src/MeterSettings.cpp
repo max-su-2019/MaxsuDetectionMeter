@@ -33,4 +33,10 @@ namespace MaxsuDetectionMeter
 		PrintSettingValue(centerOffsetY.get_key(), centerOffsetY.get_data());
 	}
 
+
+	void MeterSettings::Reload() const
+	{
+		MainConfig.Load();
+		logger::debug("Reload Configuration Settings!");
+	}
 }
