@@ -9,8 +9,6 @@ namespace MaxsuDetectionMeter
 		static void Register();
 
 	private:
-		using Buffer = std::stringstream;
-
 		ConsoleCommands() = delete;
 		ConsoleCommands(const ConsoleCommands&) = delete;
 		ConsoleCommands(ConsoleCommands&&) = delete;

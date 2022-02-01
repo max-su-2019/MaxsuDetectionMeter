@@ -10,7 +10,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
 
-
 namespace MaxsuDetectionMeter
 {
     bool Renderer::ShowMeters = false;
@@ -176,14 +175,9 @@ namespace MaxsuDetectionMeter
             //Draw Flashing Meter
             if (info->flashing.IsFlashingStart() && info->filling.GetCurrentFilling() >= 1.0f) {
                 //-------------------------------------------- Update Flashing ------------------------------------------------------------
-                if (info->flashing.GetCurrentValue() >= 255)
-                    info->flashing.SetFadeAction(fadeAction::KFadeOut);
-                else if (info->flashing.GetCurrentValue() <= 0)
-                    info->flashing.SetFadeAction(fadeAction::KFadeIn);
-        
-                float flashDelta = info->flashing.GetFadeAction() == fadeAction::KFadeIn ? ImGui::GetIO().DeltaTime * meterHandler->meterSettings->flashSpeed.get_data() : -ImGui::GetIO().DeltaTime * meterHandler->meterSettings->flashSpeed.get_data();
-                float flashValue = std::clamp(info->flashing.GetCurrentValue() + flashDelta, 0.f, 255.f);
-                info->flashing.SetValue(flashValue);
+                float flashDelta = -ImGui::GetIO().DeltaTime * meterHandler->meterSettings->flashSpeed.get_data();
+                float flashValue = info->flashing.GetCurrentValue() <= 0.f ? 255.f : info->flashing.GetCurrentValue() + flashDelta;
+                info->flashing.SetValue(std::clamp(std::int32_t(flashValue), 0, 255));
                 float size = 1.f + ((255.f - info->flashing.GetCurrentValue()) / 255.f) * meterHandler->meterSettings->flashScale.get_data();  //The lower the aplha, the bigger the size.
                 //-------------------------------------------------------------------------------------------------------------------------
 
@@ -193,7 +187,6 @@ namespace MaxsuDetectionMeter
             }
             else {
                 info->flashing.SetValue(255);
-                info->flashing.SetFadeAction(fadeAction::KFadeOut);
             }
         }
 
@@ -252,22 +245,25 @@ namespace MaxsuDetectionMeter
     void Renderer::MessageCallback(SKSE::MessagingInterface::Message* msg)  //CallBack & LoadTextureFromFile should called after resource loaded.
     {
         if (msg->type == SKSE::MessagingInterface::kInputLoaded){
-            DKUtil::GUI::InitD3D();      //Must Call during the SKSEPlugin_Load,otherwise would freeze the game.
+            DKUtil::GUI::InitD3D();      //Init d3d11 right before the main menu opened.
             DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
 
             INFO("GUI Init!"sv);
         }
         else if (msg->type == SKSE::MessagingInterface::kDataLoaded){
             // Read Texture only after game engine finished load all it renderer resource.
-            bool ret1 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_NonHostile.png", &meterset[MeterType::kNormal].my_texture, meterset[MeterType::kNormal].my_image_width, meterset[MeterType::kNormal].my_image_height);
-            IM_ASSERT(ret1);
+            std::string textureName[MeterType::kTotal] = { "Meter_Frame.png", "Meter_NonHostile.png", "Meter_Hostile.png" };
 
-            bool ret2 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_Frame.png", &meterset[MeterType::kFrame].my_texture, meterset[MeterType::kFrame].my_image_width, meterset[MeterType::kFrame].my_image_height);
-            IM_ASSERT(ret2);
-
-            bool ret3 = LoadTextureFromFile("Data\\SKSE\\Plugins\\Meter_Hostile.png", &meterset[MeterType::kCombat].my_texture, meterset[MeterType::kCombat].my_image_width, meterset[MeterType::kCombat].my_image_height);
-            IM_ASSERT(ret3);
-
+            for (std::int32_t i = MeterType::kFrame; i < MeterType::kTotal; i++) {
+                const std::string texturePath = "Data\\SKSE\\Plugins\\MaxsuDetectionMeter\\" + textureName[i];
+                if(LoadTextureFromFile(texturePath.c_str(), &meterset[i].my_texture, meterset[i].my_image_width, meterset[i].my_image_height))
+                    INFO("Loaded Texture File \"{}\""sv, texturePath.c_str());
+                else {
+                    ERROR("Fail to load texture file \"{}\""sv, texturePath.c_str());
+                    return;
+                }
+            }
+            
             auto meterHandler = MeterHandler::GetSingleton();
             if (meterHandler->meterSettings->enableDebugLog.get_data()) {
                 spdlog::set_level(spdlog::level::debug);

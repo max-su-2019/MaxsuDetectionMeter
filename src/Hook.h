@@ -6,8 +6,11 @@ namespace MaxsuDetectionMeter
 	public:
 		static void InstallHook()
 		{
-			static std::uint32_t baseID = 261397, offset = 0xAD;
+		#if ANNIVERSARY_EDITION
 
+		#else	
+			static std::uint32_t baseID = 261397, offset = 0xAD;	//Special Edition
+		#endif
 			REL::Relocation<std::uintptr_t> CharacterVtbl{ REL::ID(baseID) };
 			_ActorUpdate = CharacterVtbl.write_vfunc(offset, ActorUpdate);
 			logger::info("Hook Actor Update!");

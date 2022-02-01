@@ -1,5 +1,4 @@
 #include "Renderer.h"
-//#include "Events.h"
 #include "Hook.h"
 
 #if ANNIVERSARY_EDITION
@@ -66,8 +65,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	SKSE::Init(a_skse);
 
-	//MaxsuDetectionMeter::MenuOpenCloseEvent::Sink();
-	
 	MaxsuDetectionMeter::Renderer::Install();
 
 	MaxsuDetectionMeter::ActorUpdateHook::InstallHook();
