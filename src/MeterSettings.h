@@ -25,6 +25,7 @@ namespace MaxsuDetectionMeter
 
 		Double flashSpeed = { "FlashSpeed", "AnimatedEffect" };
 		Double flashScale = { "FlashScale", "AnimatedEffect" };
+		Integer flashShift = { "FlashShift", "AnimatedEffect" };
 
 		Double minFillingSpeed = { "MinFillingSpeed", "AnimatedEffect" };
 		Double maxFillingSpeed = { "MaxFillingSpeed", "AnimatedEffect" };

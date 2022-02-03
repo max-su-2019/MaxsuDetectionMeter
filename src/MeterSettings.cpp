@@ -11,6 +11,7 @@ namespace MaxsuDetectionMeter
 		MainConfig.Bind(fadeSpeed, 255.f);
 		MainConfig.Bind(flashSpeed, 550.f);
 		MainConfig.Bind(flashScale, 0.25f);
+		MainConfig.Bind(flashShift, 36);
 		MainConfig.Bind(minFillingSpeed, 0.35f);
 		MainConfig.Bind(maxFillingSpeed, 0.95f);
 		MainConfig.Bind(minTriggerLevel, 25);
@@ -24,6 +25,7 @@ namespace MaxsuDetectionMeter
 		PrintSettingValue(fadeSpeed.get_key(),fadeSpeed.get_data());
 		PrintSettingValue(flashSpeed.get_key(), flashSpeed.get_data());
 		PrintSettingValue(flashScale.get_key(), flashScale.get_data());
+		PrintSettingValue(flashShift.get_key(), flashShift.get_data());
 		PrintSettingValue(minFillingSpeed.get_key(), minFillingSpeed.get_data());
 		PrintSettingValue(maxFillingSpeed.get_key(), maxFillingSpeed.get_data());
 		PrintSettingValue(minTriggerLevel.get_key(), minTriggerLevel.get_data());
