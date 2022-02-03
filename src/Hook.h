@@ -7,7 +7,7 @@ namespace MaxsuDetectionMeter
 		static void InstallHook()
 		{
 		#if ANNIVERSARY_EDITION
-
+			static std::uint32_t baseID = 207886, offset = 0xAD;	//Anniversary Edition
 		#else	
 			static std::uint32_t baseID = 261397, offset = 0xAD;	//Special Edition
 		#endif
