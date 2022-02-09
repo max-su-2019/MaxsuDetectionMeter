@@ -33,8 +33,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a
 	}
 
 	const auto ver = a_skse->RuntimeVersion();
-	if (ver < SKSE::RUNTIME_1_5_39 || ver > SKSE::RUNTIME_1_5_97) {
-		ERROR("Unable to load this plugin, incompatible runtime version!\nExpected: Newer than 1-5-39-0 but not newer than 1-5-97 (A.K.A Special Edition)\nDetected: {}", ver.string());
+	if (ver < SKSE::RUNTIME_1_5_39) {
+		ERROR("Unable to load this plugin, incompatible runtime version!\nExpected: Newer than 1-5-39-0 (A.K.A Special Edition)\nDetected: {}", ver.string());
 		return false;
 	}
 
