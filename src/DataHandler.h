@@ -22,7 +22,7 @@ namespace MaxsuDetectionMeter
 		
 		std::map<RE::FormID, std::atomic<std::shared_ptr<MeterObj>>> meterArr;
 
-		std::unique_ptr<const MeterSettings> meterSettings;
+		std::unique_ptr<MeterSettings> meterSettings;
 
 		mutable std::mutex m_mutex;
 

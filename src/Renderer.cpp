@@ -110,7 +110,7 @@ namespace MaxsuDetectionMeter
         if (!MeterHandler::ShouldDisplayMeter(targActor))
             return false;
         
-        auto meterObj = a_meterPair.second.load();;
+        auto meterObj = a_meterPair.second.load();
 
         if (!meterObj || meterObj->ShouldRemove())
             return false;
@@ -209,17 +209,12 @@ namespace MaxsuDetectionMeter
             return;
 
         auto playerRef = RE::PlayerCharacter::GetSingleton();
-        if (!playerRef || !playerRef->IsSneaking()) {
+        if (!playerRef || !playerRef->IsSneaking()){
             meterHandler->meterArr.clear();
             return;
         }
 
         static constexpr ImGuiWindowFlags windowFlag = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
-        RECT screenRect{};
-        if (!GetWindowRect(DKU_G_TARGETHWND, &screenRect)) {
-            logger::error("Not Window Rect get!");
-            return;
-        }
 
         ImGui::SetNextWindowSize(ImVec2(std::abs(screenRect.right), std::abs(screenRect.bottom)));
         ImGui::SetNextWindowPos(ImVec2(screenRect.left, screenRect.top));
@@ -233,7 +228,7 @@ namespace MaxsuDetectionMeter
 
         std::scoped_lock lock(meterHandler->m_mutex);   //thread mutex lock
         auto it = meterHandler->meterArr.begin();
-        while (it != meterHandler->meterArr.end()) {
+        while (it != meterHandler->meterArr.end()){
             if (DrawSingleMeter(*it, centerPos))
                 it++;
             else
@@ -246,34 +241,42 @@ namespace MaxsuDetectionMeter
     void Renderer::MessageCallback(SKSE::MessagingInterface::Message* msg)  //CallBack & LoadTextureFromFile should called after resource loaded.
     {
         if (msg->type == SKSE::MessagingInterface::kInputLoaded){
-            DKUtil::GUI::InitD3D();      //Init d3d11 right before the main menu opened.
+            DKUtil::GUI::InitD3D();    //Init d3d11 right before the main menu opened.
             DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
 
             INFO("GUI Init!"sv);
         }
-        else if (msg->type == SKSE::MessagingInterface::kDataLoaded){
+        else if(msg->type == SKSE::MessagingInterface::kDataLoaded){
+            //Get WindowRect After Game Window loaded
+            if(!GetWindowRect(DKU_G_TARGETHWND, &screenRect)) {
+                ERROR("Not Window Rect get!");
+                return;
+            }
+
             // Read Texture only after game engine finished load all it renderer resource.
             std::string textureName[MeterType::kTotal] = { "Meter_Frame.png", "Meter_NonHostile.png", "Meter_Hostile.png" };
-
             for (std::int32_t i = MeterType::kFrame; i < MeterType::kTotal; i++) {
                 const std::string texturePath = "Data\\SKSE\\Plugins\\MaxsuDetectionMeter\\" + textureName[i];
                 if(LoadTextureFromFile(texturePath.c_str(), &meterset[i].my_texture, meterset[i].my_image_width, meterset[i].my_image_height))
                     INFO("Loaded Texture File \"{}\""sv, texturePath.c_str());
-                else {
+                else{
                     ERROR("Fail to load texture file \"{}\""sv, texturePath.c_str());
                     return;
                 }
+
+                meterset[i].my_image_width *= GetResolutionScaleWidth();
+                meterset[i].my_image_height *= GetResolutionScaleHeight();
             }
             
             auto meterHandler = MeterHandler::GetSingleton();
-            if (meterHandler->meterSettings->enableDebugLog.get_data()) {
+            if (meterHandler->meterSettings->enableDebugLog.get_data()){
                 spdlog::set_level(spdlog::level::debug);
                 logger::debug("Enable Debug Log!");
             }
 
             ShowMeters = true;
         }
-        else if (msg->type == SKSE::MessagingInterface::kPreLoadGame) {
+        else if (msg->type == SKSE::MessagingInterface::kPreLoadGame){
             DKUtil::GUI::RemoveCallback(FUNC_INFO(DrawMeters));
 
             auto meterHandler = MeterHandler::GetSingleton();

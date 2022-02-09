@@ -1,5 +1,6 @@
 #include "DKUtil/Config.hpp"
 #include "MeterSettings.h"
+#include "Renderer.h"
 
 namespace MaxsuDetectionMeter
 {
@@ -33,12 +34,25 @@ namespace MaxsuDetectionMeter
 		PrintSettingValue(radiusY.get_key(), radiusY.get_data());
 		PrintSettingValue(centerOffsetX.get_key(), centerOffsetX.get_data());
 		PrintSettingValue(centerOffsetY.get_key(), centerOffsetY.get_data());
+
+		ScalingForResolution();
 	}
 
+	void MeterSettings::ScalingForResolution()
+	{
+		float widthScale = Renderer::GetResolutionScaleWidth(); 
+		radiusX.set_data(std::vector<double>{radiusX.get_data() * widthScale});
+		centerOffsetX.set_data(std::vector<int64_t>{int64_t(centerOffsetX.get_data()* widthScale)});
 
-	void MeterSettings::Reload() const
+		float heightScale = Renderer::GetResolutionScaleHeight();
+		radiusY.set_data(std::vector<double>{radiusY.get_data()* widthScale});
+		centerOffsetY.set_data(std::vector<int64_t>{int64_t(centerOffsetY.get_data()* widthScale)});
+	}
+
+	void MeterSettings::Reload()
 	{
 		MainConfig.Load();
+		ScalingForResolution();
 		logger::debug("Reload Configuration Settings!");
 	}
 }

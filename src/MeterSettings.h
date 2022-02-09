@@ -14,10 +14,12 @@ namespace MaxsuDetectionMeter
 			logger::info("Setting:\"{}\" is {}"sv, a_key, a_data);
 		}
 
+		void ScalingForResolution();
+
 	public:
 		MeterSettings();
 
-		void Reload() const;
+		void Reload();
 
 		Boolean enableDebugLog{ "EnableDebugLog", "Main" };
 
