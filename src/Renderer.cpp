@@ -12,8 +12,6 @@
 
 namespace MaxsuDetectionMeter
 {
-    bool Renderer::ShowMeters = false;
-
     // Simple helper function to load an image into a DX11 texture with common settings
     static bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, std::int32_t& out_width, std::int32_t& out_height)
     {
@@ -200,8 +198,16 @@ namespace MaxsuDetectionMeter
             return;
 
         auto UI = RE::UI::GetSingleton();
-
         if (!UI || UI->GameIsPaused() || !UI->IsCursorHiddenWhenTopmost() || !UI->IsShowingMenus() || !UI->GetMenu<RE::HUDMenu>())
+            return;
+
+        auto camera = RE::PlayerCamera::GetSingleton();
+        auto cameraState = camera ? camera->currentState : nullptr;
+        if (cameraState->id != RE::CameraState::kFirstPerson && cameraState->id != RE::CameraState::kThirdPerson)
+            return;
+
+        auto ctrlMap = RE::ControlMap::GetSingleton();
+        if (!ctrlMap || !ctrlMap->IsSneakingControlsEnabled() || !ctrlMap->IsMovementControlsEnabled() || ctrlMap->contextPriorityStack.back() != RE::UserEvents::INPUT_CONTEXT_ID::kGameplay)
             return;
 
         auto meterHandler = MeterHandler::GetSingleton();
@@ -216,14 +222,16 @@ namespace MaxsuDetectionMeter
 
         static constexpr ImGuiWindowFlags windowFlag = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
 
-        ImGui::SetNextWindowSize(ImVec2(std::abs(screenRect.right), std::abs(screenRect.bottom)));
-        ImGui::SetNextWindowPos(ImVec2(screenRect.left, screenRect.top));
+        float screenSizeX = ImGui::GetIO().DisplaySize.x, screenSizeY = ImGui::GetIO().DisplaySize.y;
+
+        ImGui::SetNextWindowSize(ImVec2(screenSizeX, screenSizeY));
+        ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
 
         ImGui::Begin("Maxsu_DetectionMeter",nullptr, windowFlag);
 
         auto const centerPos = ImVec2(
-            0.5f * std::abs(screenRect.right - screenRect.left) + meterHandler->meterSettings->centerOffsetX.get_data(),
-            0.5f * std::abs(screenRect.top - screenRect.bottom) + meterHandler->meterSettings->centerOffsetY.get_data()
+            0.5f * std::abs(screenSizeX) + meterHandler->meterSettings->centerOffsetX.get_data(),
+            0.5f * std::abs(screenSizeY) + meterHandler->meterSettings->centerOffsetY.get_data()
         );
 
         std::scoped_lock lock(meterHandler->m_mutex);   //thread mutex lock
@@ -248,10 +256,12 @@ namespace MaxsuDetectionMeter
         }
         else if(msg->type == SKSE::MessagingInterface::kDataLoaded){
             //Get WindowRect After Game Window loaded
+            /*
             if(!GetWindowRect(DKU_G_TARGETHWND, &screenRect)) {
                 ERROR("Not Window Rect get!");
                 return;
             }
+            */
 
             // Read Texture only after game engine finished load all it renderer resource.
             std::string textureName[MeterType::kTotal] = { "Meter_Frame.png", "Meter_NonHostile.png", "Meter_Hostile.png" };
@@ -303,4 +313,15 @@ namespace MaxsuDetectionMeter
         return true;
     }
 
+
+    float Renderer::GetResolutionScaleWidth()
+    {
+        return ImGui::GetIO().DisplaySize.x / 1920.f;
+    }
+
+    float Renderer::GetResolutionScaleHeight()
+    { 
+        return  ImGui::GetIO().DisplaySize.y / 1080.f;
+    }
+    
 }

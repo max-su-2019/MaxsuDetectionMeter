@@ -9,6 +9,7 @@ namespace MaxsuDetectionMeter
 		auto command = strChunk->GetString();
 		std::transform(command.begin(), command.end(), command.begin(), ::tolower);
 
+		using func_ptr = bool(*)();
 		static std::map<std::string, func_ptr> funcMap = {std::make_pair("reload", &ReloadConfig)};
 		auto it = funcMap.find(command);
 		if (it != funcMap.end() && it->second()) {

@@ -45,8 +45,9 @@ namespace MaxsuDetectionMeter
 		centerOffsetX.set_data(std::vector<int64_t>{int64_t(centerOffsetX.get_data()* widthScale)});
 
 		float heightScale = Renderer::GetResolutionScaleHeight();
-		radiusY.set_data(std::vector<double>{radiusY.get_data()* widthScale});
-		centerOffsetY.set_data(std::vector<int64_t>{int64_t(centerOffsetY.get_data()* widthScale)});
+		radiusY.set_data(std::vector<double>{radiusY.get_data()* heightScale});
+		centerOffsetY.set_data(std::vector<int64_t>{int64_t(centerOffsetY.get_data()* heightScale)});
+		flashShift.set_data(std::vector<int64_t>{int64_t(flashShift.get_data()* heightScale)});
 	}
 
 	void MeterSettings::Reload()

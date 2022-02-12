@@ -4,7 +4,6 @@ namespace MaxsuDetectionMeter
 {
 	class ConsoleCommands
 	{
-		using func_ptr = bool(*)();
 	public:
 		static void Register();
 
