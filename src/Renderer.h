@@ -10,8 +10,6 @@ namespace MaxsuDetectionMeter
 		static void DrawMeters();	//Rendering Meters.
 		static void MessageCallback(SKSE::MessagingInterface::Message* msg);
 
-		//static inline RECT screenRect{};
-
 		static inline bool ShowMeters = false;
 	public:
 		static bool Install();

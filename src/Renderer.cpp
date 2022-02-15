@@ -255,14 +255,6 @@ namespace MaxsuDetectionMeter
             INFO("GUI Init!"sv);
         }
         else if(msg->type == SKSE::MessagingInterface::kDataLoaded){
-            //Get WindowRect After Game Window loaded
-            /*
-            if(!GetWindowRect(DKU_G_TARGETHWND, &screenRect)) {
-                ERROR("Not Window Rect get!");
-                return;
-            }
-            */
-
             // Read Texture only after game engine finished load all it renderer resource.
             std::string textureName[MeterType::kTotal] = { "Meter_Frame.png", "Meter_NonHostile.png", "Meter_Hostile.png" };
             for (std::int32_t i = MeterType::kFrame; i < MeterType::kTotal; i++) {

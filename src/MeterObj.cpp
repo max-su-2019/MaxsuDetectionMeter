@@ -3,6 +3,17 @@
 
 namespace MaxsuDetectionMeter
 {
+	static bool DisplayForNonCombat(RE::Actor* a_owner, const std::int32_t a_level, RE::PlayerCharacter* playerRef)
+	{
+		if (a_level >= 100)
+			return true;
+
+		auto meterHandler = MeterHandler::GetSingleton();
+		return a_level >= meterHandler->meterSettings->minTriggerLevel.get_data() && a_owner->GetSitSleepState() != RE::SIT_SLEEP_STATE::kIsSleeping &&
+			(a_owner->HasLOS(playerRef) || MeterHandler::HeadTarckingOnPlayer(a_owner));
+	}
+
+
 	FrameMeterInfo::FrameMeterInfo()
 	{
 		//Set Filling to 100 when init.
@@ -12,8 +23,6 @@ namespace MaxsuDetectionMeter
 
 	bool FrameMeterInfo::Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints)
 	{
-		auto meterHandler = MeterHandler::GetSingleton();
-
 		auto playerRef = RE::PlayerCharacter::GetSingleton();
 
 		if (a_owner && playerRef) {
@@ -21,10 +30,10 @@ namespace MaxsuDetectionMeter
 				return false;
 
 			//Update AlphaInfo
-			if (a_stealthPoints.has_value() || a_level >= 100)
+			if (a_stealthPoints.has_value())
 				this->alpha.SetFadeAction(FadeType::KFadeIn);	//Frame Meter always shown when in combat state
 			else
-				a_level >= meterHandler->meterSettings->minTriggerLevel.get_data() && (a_owner->HasLOS(playerRef) || MeterHandler::HeadTarckingOnPlayer(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
+				DisplayForNonCombat(a_owner, a_level, playerRef) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
 
 			return true;
 		}
@@ -35,8 +44,6 @@ namespace MaxsuDetectionMeter
 
 	bool NormalMeterInfo::Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints)
 	{
-		auto meterHandler = MeterHandler::GetSingleton();
-
 		if (!a_owner)
 			return false;
 
@@ -51,7 +58,7 @@ namespace MaxsuDetectionMeter
 			this->alpha.SetValue(0);
 		}
 		else
-			a_level >= meterHandler->meterSettings->minTriggerLevel.get_data() && (a_level >= 100 || a_owner->HasLOS(playerRef) || MeterHandler::HeadTarckingOnPlayer(a_owner)) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
+			DisplayForNonCombat(a_owner, a_level, playerRef) ? this->alpha.SetFadeAction(FadeType::KFadeIn) : this->alpha.SetFadeAction(FadeType::KFadeOut);
 		
 		//Update Flashing
 		if (a_level >= 100 && !a_stealthPoints.has_value())
