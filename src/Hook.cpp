@@ -27,9 +27,7 @@ namespace MaxsuDetectionMeter
 			auto const angle = CamTrans.GetHeadingAngle(a_owner->GetPosition());
 
 			if (!meterHandler->meterArr.count(ownerID)) {
-				if ( (!playerref->IsInCombat() && ((level >= meterHandler->meterSettings->minTriggerLevel.get_data() && a_owner->HasLOS(playerref)) || level >= 100)) ||
-					(playerref->IsInCombat() && stealthPoint.has_value()) ) 
-				{
+				if ( (!playerref->IsInCombat() && (meterHandler->DisplayForNonCombat(a_owner,level,playerref))) || (playerref->IsInCombat() && stealthPoint.has_value()) ) {
 					std::scoped_lock lock(meterHandler->m_mutex);	//thread mutex lock
 					auto meterObj = std::make_shared<MeterObj>(angle);
 					meterHandler->meterArr.emplace(ownerID, meterObj);

@@ -70,4 +70,14 @@ namespace MaxsuDetectionMeter
 
 		return false;
 	}
+
+
+	bool MeterHandler::DisplayForNonCombat(RE::Actor* a_owner, const std::int32_t a_level, RE::PlayerCharacter* playerRef) const
+	{
+		if (a_level >= 100)
+			return true;
+
+		return a_level >= meterSettings->minTriggerLevel.get_data() && a_owner->GetSitSleepState() != RE::SIT_SLEEP_STATE::kIsSleeping &&
+			(a_owner->HasLOS(playerRef) || HeadTarckingOnPlayer(a_owner));
+	}
 }

@@ -19,6 +19,8 @@ namespace MaxsuDetectionMeter
 		static std::int32_t ReCalculateDetectionLevel(std::int32_t a_level);
 		static std::optional<float> GetStealthPoint(RE::Actor* a_owner);
 		static bool HeadTarckingOnPlayer(RE::Actor* a_owner);
+
+		bool DisplayForNonCombat(RE::Actor* a_owner, const std::int32_t a_level, RE::PlayerCharacter* playerRef) const;
 		
 		std::map<RE::FormID, std::atomic<std::shared_ptr<MeterObj>>> meterArr;
 
