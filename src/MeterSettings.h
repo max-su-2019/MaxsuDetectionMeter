@@ -8,7 +8,7 @@ namespace MaxsuDetectionMeter
 	struct MeterSettings
 	{
 	private:
-		template<class T>
+		template <class T>
 		static void PrintSettingValue(const std::string a_key, const T a_data)
 		{
 			logger::info("Setting:\"{}\" is {}"sv, a_key, a_data);
@@ -25,8 +25,8 @@ namespace MaxsuDetectionMeter
 
 		Double fadeSpeed{ "FadeSpeed", "AnimatedEffect" };
 
-		Double flashSpeed = { "FlashSpeed", "AnimatedEffect" };
-		Double flashScale = { "FlashScale", "AnimatedEffect" };
+		Double  flashSpeed = { "FlashSpeed", "AnimatedEffect" };
+		Double  flashScale = { "FlashScale", "AnimatedEffect" };
 		Integer flashShift = { "FlashShift", "AnimatedEffect" };
 
 		Double minFillingSpeed = { "MinFillingSpeed", "AnimatedEffect" };
@@ -38,6 +38,6 @@ namespace MaxsuDetectionMeter
 		Double radiusY = { "RadiusY", "Display" };
 
 		Integer centerOffsetX = { "CenterOffsetX", "Display" };
-		Integer centerOffsetY = { "CenterOffsetY", "Display"};
+		Integer centerOffsetY = { "CenterOffsetY", "Display" };
 	};
 }

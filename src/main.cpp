@@ -1,10 +1,9 @@
-#include "Renderer.h"
 #include "Hook.h"
+#include "Renderer.h"
 
 #if ANNIVERSARY_EDITION
 
-extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []()
-{
+extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
 	SKSE::PluginVersionData data{};
 
 	data.PluginVersion(Version::MAJOR);

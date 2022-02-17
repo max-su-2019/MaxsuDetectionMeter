@@ -9,8 +9,9 @@ namespace MaxsuDetectionMeter
 		auto command = strChunk->GetString();
 		std::transform(command.begin(), command.end(), command.begin(), ::tolower);
 
-		using func_ptr = bool(*)();
-		static std::map<std::string, func_ptr> funcMap = {std::make_pair("reload", &ReloadConfig)};
+		using func_ptr = bool (*)();
+		static std::map<std::string, func_ptr> funcMap = { std::make_pair("reload", &ReloadConfig) };
+
 		auto it = funcMap.find(command);
 		if (it != funcMap.end() && it->second()) {
 			CPrint("Execute Command %s Successfully", it->first.c_str());
@@ -42,8 +43,7 @@ namespace MaxsuDetectionMeter
 			info->invalidatesCellList = false;
 
 			logger::info(FMT_STRING("Registered console command: {} ({})"), LONG_NAME, SHORT_NAME);
-		}
-		else {
+		} else {
 			logger::error(FMT_STRING("Failed to register console command: {} ({})"), LONG_NAME, SHORT_NAME);
 		}
 	}
@@ -72,7 +72,6 @@ namespace MaxsuDetectionMeter
 		return help.c_str();
 	}
 
-
 	bool ConsoleCommands::ReloadConfig()
 	{
 		MeterHandler::GetSingleton()->meterSettings->Reload();
@@ -80,5 +79,3 @@ namespace MaxsuDetectionMeter
 		return true;
 	}
 }
-
-

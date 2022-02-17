@@ -1,5 +1,5 @@
-#include "DKUtil/Config.hpp"
 #include "MeterSettings.h"
+#include "DKUtil/Config.hpp"
 #include "Renderer.h"
 
 namespace MaxsuDetectionMeter
@@ -23,7 +23,7 @@ namespace MaxsuDetectionMeter
 
 		MainConfig.Load();
 
-		PrintSettingValue(fadeSpeed.get_key(),fadeSpeed.get_data());
+		PrintSettingValue(fadeSpeed.get_key(), fadeSpeed.get_data());
 		PrintSettingValue(flashSpeed.get_key(), flashSpeed.get_data());
 		PrintSettingValue(flashScale.get_key(), flashScale.get_data());
 		PrintSettingValue(flashShift.get_key(), flashShift.get_data());
@@ -40,14 +40,14 @@ namespace MaxsuDetectionMeter
 
 	void MeterSettings::ScalingForResolution()
 	{
-		float widthScale = Renderer::GetResolutionScaleWidth(); 
-		radiusX.set_data(std::vector<double>{radiusX.get_data() * widthScale});
-		centerOffsetX.set_data(std::vector<int64_t>{int64_t(centerOffsetX.get_data()* widthScale)});
+		float widthScale = Renderer::GetResolutionScaleWidth();
+		radiusX.set_data(std::vector<double>{ radiusX.get_data() * widthScale });
+		centerOffsetX.set_data(std::vector<int64_t>{ int64_t(centerOffsetX.get_data() * widthScale) });
 
 		float heightScale = Renderer::GetResolutionScaleHeight();
-		radiusY.set_data(std::vector<double>{radiusY.get_data()* heightScale});
-		centerOffsetY.set_data(std::vector<int64_t>{int64_t(centerOffsetY.get_data()* heightScale)});
-		flashShift.set_data(std::vector<int64_t>{int64_t(flashShift.get_data()* heightScale)});
+		radiusY.set_data(std::vector<double>{ radiusY.get_data() * heightScale });
+		centerOffsetY.set_data(std::vector<int64_t>{ int64_t(centerOffsetY.get_data() * heightScale) });
+		flashShift.set_data(std::vector<int64_t>{ int64_t(flashShift.get_data() * heightScale) });
 	}
 
 	void MeterSettings::Reload()

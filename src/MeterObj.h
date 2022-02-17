@@ -14,8 +14,7 @@ namespace MaxsuDetectionMeter
 	};
 	using MeterType = MeterTypes::MeterType;
 
-
-	class MeterInfo 
+	class MeterInfo
 	{
 		struct AlphaInfo
 		{
@@ -29,13 +28,13 @@ namespace MaxsuDetectionMeter
 			AlphaInfo() = default;
 
 			_NODISCARD FadeType GetFadeAction() const { return fadeAction; }
-			void SetFadeAction(const FadeType a_action) { fadeAction = a_action; }
+			void                SetFadeAction(const FadeType a_action) { fadeAction = a_action; }
 
 			_NODISCARD std::int32_t GetCurrentValue() const { return value; }
-			void SetValue(const std::int32_t a_value) { value = a_value; }
+			void                    SetValue(const std::int32_t a_value) { value = a_value; }
 
 		protected:
-			FadeType fadeAction = FadeType::KNone;
+			FadeType     fadeAction = FadeType::KNone;
 			std::int32_t value = 0;
 		};
 
@@ -44,28 +43,27 @@ namespace MaxsuDetectionMeter
 			FillingInfo() = default;
 
 			_NODISCARD float GetTargetFilling() const { return targFilling; }
-			void SetTargetFilling(const float a_targFliing) { targFilling = a_targFliing; }
+			void             SetTargetFilling(const float a_targFliing) { targFilling = a_targFliing; }
 
 			_NODISCARD float GetCurrentFilling() const { return curFilling; }
-			void SetCurrentFilling(const float a_curFilling) { curFilling = a_curFilling; }
+			void             SetCurrentFilling(const float a_curFilling) { curFilling = a_curFilling; }
 
 		private:
 			float targFilling = 0.f;
 			float curFilling = 0.f;
 		};
 
-
 		struct FlashingInfo : public AlphaInfo
 		{
 			FlashingInfo() = default;
 
 			_NODISCARD bool IsFlashingStart() const { return flashingStart; }
-			void SetFlashingStart(const bool a_start) { flashingStart = a_start; }
+			void            SetFlashingStart(const bool a_start) { flashingStart = a_start; }
 
 		private:
-			FadeType fadeAction = FadeType::KFadeOut;
+			FadeType     fadeAction = FadeType::KFadeOut;
 			std::int32_t value = 255;
-			bool flashingStart = false;
+			bool         flashingStart = false;
 		};
 
 	public:
@@ -75,12 +73,10 @@ namespace MaxsuDetectionMeter
 
 		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) = 0;
 
-		AlphaInfo		alpha;
-		FillingInfo		filling;
-		FlashingInfo	flashing;
-
+		AlphaInfo    alpha;
+		FillingInfo  filling;
+		FlashingInfo flashing;
 	};
-
 
 	class FrameMeterInfo : public MeterInfo
 	{
@@ -90,7 +86,6 @@ namespace MaxsuDetectionMeter
 		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
 	};
 
-
 	class NormalMeterInfo : public MeterInfo
 	{
 	public:
@@ -98,7 +93,6 @@ namespace MaxsuDetectionMeter
 
 		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
 	};
-
 
 	class CombatMeterInfo : public MeterInfo
 	{
@@ -108,13 +102,11 @@ namespace MaxsuDetectionMeter
 		virtual bool Update(RE::Actor* a_owner, std::int32_t a_level, std::optional<float> a_stealthPoints) override;
 	};
 
-
-
 	class MeterObj
 	{
 	public:
-
-		MeterObj(float a_angle) : headingAngle(a_angle)
+		MeterObj(float a_angle) :
+			headingAngle(a_angle)
 		{
 			infos[MeterType::kFrame] = std::make_shared<FrameMeterInfo>();
 			infos[MeterType::kNormal] = std::make_shared<NormalMeterInfo>();
@@ -125,8 +117,8 @@ namespace MaxsuDetectionMeter
 		void MarkForRemove() { shouldRemove = true; }
 		bool ShouldRemove() const { return shouldRemove; }
 
-		std::shared_ptr<MeterInfo>	infos[MeterType::kTotal];
-		float						headingAngle;
+		std::shared_ptr<MeterInfo> infos[MeterType::kTotal];
+		float                      headingAngle;
 
 	private:
 		bool shouldRemove = false;
