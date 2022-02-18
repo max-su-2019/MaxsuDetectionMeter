@@ -16,8 +16,8 @@ namespace MaxsuDetectionMeter
 	static bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, std::int32_t& out_width, std::int32_t& out_height)
 	{
 		// Load from disk into a raw RGBA buffer
-		int            image_width = 0;
-		int            image_height = 0;
+		int image_width = 0;
+		int image_height = 0;
 		unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
 		if (image_data == NULL)
 			return false;
@@ -35,7 +35,7 @@ namespace MaxsuDetectionMeter
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		desc.CPUAccessFlags = 0;
 
-		ID3D11Texture2D*       pTexture = NULL;
+		ID3D11Texture2D* pTexture = NULL;
 		D3D11_SUBRESOURCE_DATA subResource;
 		subResource.pSysMem = image_data;
 		subResource.SysMemPitch = desc.Width * 4;
@@ -90,8 +90,8 @@ namespace MaxsuDetectionMeter
 
 	struct ImageSet
 	{
-		std::int32_t              my_image_width = 0;
-		std::int32_t              my_image_height = 0;
+		std::int32_t my_image_width = 0;
+		std::int32_t my_image_height = 0;
 		ID3D11ShaderResourceView* my_texture = nullptr;
 	};
 
@@ -113,7 +113,7 @@ namespace MaxsuDetectionMeter
 
 		auto meterHandler = MeterHandler::GetSingleton();
 
-		const auto  angle = meterObj->headingAngle;
+		const auto angle = meterObj->headingAngle;
 		const float offsetX = meterHandler->meterSettings->radiusX.get_data() * std::sin(angle * 3.14f / 180.f);
 		const float offsetY = -meterHandler->meterSettings->radiusY.get_data() * std::cos(angle * 3.14f / 180.f);
 
@@ -230,7 +230,7 @@ namespace MaxsuDetectionMeter
 			0.5f * std::abs(screenSizeY) + meterHandler->meterSettings->centerOffsetY.get_data());
 
 		std::scoped_lock lock(meterHandler->m_mutex);  //thread mutex lock
-		auto             it = meterHandler->meterArr.begin();
+		auto it = meterHandler->meterArr.begin();
 		while (it != meterHandler->meterArr.end()) {
 			if (DrawSingleMeter(*it, centerPos))
 				it++;
