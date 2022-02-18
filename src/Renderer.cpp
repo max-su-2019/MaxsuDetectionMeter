@@ -147,7 +147,6 @@ namespace MaxsuDetectionMeter
 
 			//-------------------------------------------- Update Filling ------------------------------------------------------------
 			float filling = 0.f;
-
 			if (abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) > 0.01f) {
 				float fillingDelta = info->filling.GetTargetFilling() >= 1.0f ?
                                          ImGui::GetIO().DeltaTime * meterHandler->meterSettings->maxFillingSpeed.get_data() :
