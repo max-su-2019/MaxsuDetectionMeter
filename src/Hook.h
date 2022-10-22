@@ -1,25 +1,19 @@
 
 namespace MaxsuDetectionMeter
 {
-	class ActorUpdateHook
+	class CharacterEx : public RE::Character
 	{
 	public:
 		static void InstallHook()
 		{
-#if ANNIVERSARY_EDITION
-			static std::uint32_t baseID = 207886, offset = 0xAD;  //Anniversary Edition
-#else
-			static std::uint32_t baseID = 261397, offset = 0xAD;  //Special Edition
-#endif
-			REL::Relocation<std::uintptr_t> CharacterVtbl{ REL::ID(baseID) };
-			_ActorUpdate = CharacterVtbl.write_vfunc(offset, ActorUpdate);
-			logger::info("Hook Actor Update!");
+			REL::Relocation<std::uintptr_t> CharacterVtbl{ VTABLE[0] };
+			func = CharacterVtbl.write_vfunc(0x0AD, &Hook_Update);
+			INFO("Hook Actor Update!");
 		}
 
 	private:
-		static void ActorUpdate(RE::Actor* a_actor, float a_delta);
+		void Hook_Update(float a_delta);
 
-		static inline REL::Relocation<decltype(ActorUpdate)> _ActorUpdate;
+		static inline REL::Relocation<decltype(&RE::Character::Update)> func;
 	};
-
 }

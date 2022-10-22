@@ -1,4 +1,4 @@
-#include"DataHandler.h"
+#include "DataHandler.h"
 #include "ConsoleCommands.h"
 
 namespace MaxsuDetectionMeter
@@ -12,8 +12,10 @@ namespace MaxsuDetectionMeter
 
 	bool MeterHandler::ShouldDisplayMeter(RE::Actor* a_owner)
 	{
-		return a_owner && !a_owner->IsPlayerRef() && !a_owner->IsDead() && a_owner->Is3DLoaded() && !a_owner->NotShowOnStealthMeter() && 
-			!a_owner->IsPlayerTeammate() && !a_owner->IsSummonedByPlayer() && a_owner->currentProcess && a_owner->currentProcess->high;
+		auto& data = a_owner->GetActorRuntimeData();
+		auto s = a_owner && !a_owner->IsPlayerRef() && !a_owner->IsDead() && a_owner->Is3DLoaded() && !a_owner->GetActorRuntimeData().boolFlags.all(RE::Actor::BOOL_FLAGS::kDoNotShowOnStealthMeter) &&
+		         !a_owner->IsPlayerTeammate() && !a_owner->IsSummonedByPlayer() && data.currentProcess && data.currentProcess->high;
+		return s;
 	}
 
 	std::int32_t MeterHandler::ReCalculateDetectionLevel(std::int32_t a_level)
@@ -34,11 +36,11 @@ namespace MaxsuDetectionMeter
 		if (!a_owner || a_owner->IsPlayerRef())
 			return result;
 
-		auto IsInCombatWithPlayer = [](const RE::CombatGroup::TargetData& targetData) -> bool {
+		auto IsInCombatWithPlayer = [](const RE::CombatTarget& targetData) -> bool {
 			if (targetData.targetHandle.get())
 				return targetData.targetHandle.get()->IsPlayerRef();
-			else if (targetData.attackedMember.get() && targetData.attackedMember.get()->currentCombatTarget.get())
-				return targetData.attackedMember.get()->currentCombatTarget.get()->IsPlayerRef();
+			else if (targetData.attackedMember.get() && targetData.attackedMember.get()->GetActorRuntimeData().currentCombatTarget.get())
+				return targetData.attackedMember.get()->GetActorRuntimeData().currentCombatTarget.get()->IsPlayerRef();
 			else
 				return false;
 		};
@@ -47,7 +49,7 @@ namespace MaxsuDetectionMeter
 		if (group) {
 			for (auto target : group->targets) {
 				if (IsInCombatWithPlayer(target)) {
-					return result.emplace(std::clamp(100.f - target.attackedStealthPoints, 0.f, 100.f));
+					return result.emplace(std::clamp(100.f - target.stealthPoints, 0.f, 100.f));
 				}
 			}
 		}
@@ -65,8 +67,9 @@ namespace MaxsuDetectionMeter
 		if (extraTarget && extraTarget->target.get())
 			return extraTarget->target.get()->IsPlayerRef();
 		
-		if (a_owner->currentProcess && a_owner->currentProcess->high && a_owner->currentProcess->high->pathLookAtTarget.get())
-			return a_owner->currentProcess->high->pathLookAtTarget.get()->IsPlayerRef();
+		auto& data = a_owner->GetActorRuntimeData();
+		if (data.currentProcess && data.currentProcess->high && data.currentProcess->high->pathLookAtTarget.get())
+			return data.currentProcess->high->pathLookAtTarget.get()->IsPlayerRef();
 
 		return false;
 	}
@@ -77,7 +80,8 @@ namespace MaxsuDetectionMeter
 		if (a_level >= 100)
 			return true;
 
-		return a_level >= meterSettings->minTriggerLevel.get_data() && a_owner->GetSitSleepState() != RE::SIT_SLEEP_STATE::kIsSleeping &&
-			(a_owner->HasLOS(playerRef) || HeadTarckingOnPlayer(a_owner));
+		bool discard;
+		return a_level >= meterSettings->minTriggerLevel.get_data() && a_owner->AsActorState()->GetSitSleepState() != RE::SIT_SLEEP_STATE::kIsSitting &&
+			(a_owner->HasLineOfSight(playerRef, discard) || HeadTarckingOnPlayer(a_owner));
 	}
 }

@@ -42,9 +42,9 @@ namespace MaxsuDetectionMeter
 			info->editorFilter = false;
 			info->invalidatesCellList = false;
 
-			logger::info(FMT_STRING("Registered console command: {} ({})"), LONG_NAME, SHORT_NAME);
+			INFO("Registered console command: {} ({})", LONG_NAME, SHORT_NAME);
 		} else {
-			logger::error(FMT_STRING("Failed to register console command: {} ({})"), LONG_NAME, SHORT_NAME);
+			ERROR("Failed to register console command: {} ({})", LONG_NAME, SHORT_NAME);
 		}
 	}
 

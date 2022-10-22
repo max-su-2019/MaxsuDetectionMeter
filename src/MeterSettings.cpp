@@ -4,7 +4,7 @@
 
 namespace MaxsuDetectionMeter
 {
-	static auto MainConfig = RUNTIME_PROXY("MaxsuDetectionMeter.ini"sv);
+	static auto MainConfig = COMPILE_PROXY("MaxsuDetectionMeter.ini"sv);
 
 	MeterSettings::MeterSettings()
 	{
@@ -23,17 +23,17 @@ namespace MaxsuDetectionMeter
 
 		MainConfig.Load();
 
-		PrintSettingValue(fadeSpeed.get_key(), fadeSpeed.get_data());
-		PrintSettingValue(flashSpeed.get_key(), flashSpeed.get_data());
-		PrintSettingValue(flashScale.get_key(), flashScale.get_data());
-		PrintSettingValue(flashShift.get_key(), flashShift.get_data());
-		PrintSettingValue(minFillingSpeed.get_key(), minFillingSpeed.get_data());
-		PrintSettingValue(maxFillingSpeed.get_key(), maxFillingSpeed.get_data());
-		PrintSettingValue(minTriggerLevel.get_key(), minTriggerLevel.get_data());
-		PrintSettingValue(radiusX.get_key(), radiusX.get_data());
-		PrintSettingValue(radiusY.get_key(), radiusY.get_data());
-		PrintSettingValue(centerOffsetX.get_key(), centerOffsetX.get_data());
-		PrintSettingValue(centerOffsetY.get_key(), centerOffsetY.get_data());
+		PrintSettingValue(fadeSpeed.get_key(), *fadeSpeed);
+		PrintSettingValue(flashSpeed.get_key(), *flashSpeed);
+		PrintSettingValue(flashScale.get_key(), *flashScale);
+		PrintSettingValue(flashShift.get_key(), *flashShift);
+		PrintSettingValue(minFillingSpeed.get_key(), *minFillingSpeed);
+		PrintSettingValue(maxFillingSpeed.get_key(), *maxFillingSpeed);
+		PrintSettingValue(minTriggerLevel.get_key(), *minTriggerLevel);
+		PrintSettingValue(radiusX.get_key(), *radiusX);
+		PrintSettingValue(radiusY.get_key(), *radiusY);
+		PrintSettingValue(centerOffsetX.get_key(), *centerOffsetX);
+		PrintSettingValue(centerOffsetY.get_key(), *centerOffsetY);
 
 		ScalingForResolution();
 	}
@@ -41,19 +41,19 @@ namespace MaxsuDetectionMeter
 	void MeterSettings::ScalingForResolution()
 	{
 		float widthScale = Renderer::GetResolutionScaleWidth();
-		radiusX.set_data(std::vector<double>{ radiusX.get_data() * widthScale });
-		centerOffsetX.set_data(std::vector<int64_t>{ int64_t(centerOffsetX.get_data() * widthScale) });
+		*radiusX *= widthScale;
+		*centerOffsetX *= widthScale;
 
 		float heightScale = Renderer::GetResolutionScaleHeight();
-		radiusY.set_data(std::vector<double>{ radiusY.get_data() * heightScale });
-		centerOffsetY.set_data(std::vector<int64_t>{ int64_t(centerOffsetY.get_data() * heightScale) });
-		flashShift.set_data(std::vector<int64_t>{ int64_t(flashShift.get_data() * heightScale) });
+		*radiusY *= heightScale;
+		*centerOffsetY *= heightScale;
+		*flashShift *= heightScale;
 	}
 
 	void MeterSettings::Reload()
 	{
 		MainConfig.Load();
 		ScalingForResolution();
-		logger::debug("Reload Configuration Settings!");
+		DEBUG("Reload Configuration Settings!");
 	}
 }

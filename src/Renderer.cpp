@@ -2,7 +2,7 @@
 #include "DataHandler.h"
 
 #define DKU_G_DEBUG
-#include "DKUTil/GUI.hpp"
+#include "DKUtil/GUI.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image.h"
@@ -252,10 +252,10 @@ namespace MaxsuDetectionMeter
 			std::string textureName[MeterType::kTotal] = { "Meter_Frame.png", "Meter_NonHostile.png", "Meter_Hostile.png" };
 			for (std::int32_t i = MeterType::kFrame; i < MeterType::kTotal; i++) {
 				const std::string texturePath = "Data\\SKSE\\Plugins\\MaxsuDetectionMeter\\" + textureName[i];
-				if (LoadTextureFromFile(texturePath.c_str(), &meterset[i].my_texture, meterset[i].my_image_width, meterset[i].my_image_height))
-					INFO("Loaded Texture File \"{}\""sv, texturePath.c_str());
-				else {
-					ERROR("Fail to load texture file \"{}\""sv, texturePath.c_str());
+				if (LoadTextureFromFile(texturePath.c_str(), &meterset[i].my_texture, meterset[i].my_image_width, meterset[i].my_image_height)) {
+					INFO("Loaded Texture File \"{}\"", texturePath.c_str());
+				} else {
+					ERROR("Fail to load texture file \"{}\"", texturePath.c_str());
 					return;
 				}
 
@@ -266,7 +266,7 @@ namespace MaxsuDetectionMeter
 			auto meterHandler = MeterHandler::GetSingleton();
 			if (meterHandler->meterSettings->enableDebugLog.get_data()) {
 				spdlog::set_level(spdlog::level::debug);
-				logger::debug("Enable Debug Log!");
+				DEBUG("Enable Debug Log!");
 			}
 
 			ShowMeters = true;
@@ -287,7 +287,7 @@ namespace MaxsuDetectionMeter
 	{
 		auto g_message = SKSE::GetMessagingInterface();
 		if (!g_message) {
-			logger::error("Messaging Interface Not Found!");
+			ERROR("Messaging Interface Not Found!");
 			return false;
 		}
 

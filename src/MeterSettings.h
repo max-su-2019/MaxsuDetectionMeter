@@ -11,7 +11,7 @@ namespace MaxsuDetectionMeter
 		template <class T>
 		static void PrintSettingValue(const std::string a_key, const T a_data)
 		{
-			logger::info("Setting:\"{}\" is {}"sv, a_key, a_data);
+			INFO("Setting:\"{}\" is {}"sv, a_key, a_data);
 		}
 
 		void ScalingForResolution();
