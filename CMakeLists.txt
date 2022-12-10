@@ -13,7 +13,7 @@ include(GNUInstallDirs)
 # info
 project(
 	MaxsuDetectionMeter
-	VERSION 1.0.6
+	VERSION 1.0.7
 	LANGUAGES CXX
 )
 

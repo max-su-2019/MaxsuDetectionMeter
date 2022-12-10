@@ -1,8 +1,12 @@
 #include "Renderer.h"
 #include "DataHandler.h"
 
-#define DKU_G_DEBUG
-#include "DKUtil/GUI.hpp"
+#include <d3d11.h>
+
+#include <imgui_impl_dx11.h>
+#include <imgui_impl_win32.h>
+
+#include <dxgi.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image.h"
@@ -12,9 +16,99 @@
 
 namespace MaxsuDetectionMeter
 {
-	// Simple helper function to load an image into a DX11 texture with common settings
-	static bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, std::int32_t& out_width, std::int32_t& out_height)
+	LRESULT Renderer::WndProcHook::thunk(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
+		auto& io = ImGui::GetIO();
+		if (uMsg == WM_KILLFOCUS) {
+			io.ClearInputCharacters();
+			io.ClearInputKeys();
+		}
+
+		return func(hWnd, uMsg, wParam, lParam);
+	}
+
+	void Renderer::D3DInitHook::thunk()
+	{
+		func();
+
+		INFO("D3DInit Hooked!");
+		auto render_manager = RE::BSRenderManager::GetSingleton();
+		if (!render_manager) {
+			ERROR("Cannot find render manager. Initialization failed!");
+			return;
+		}
+
+		auto render_data = render_manager->GetRuntimeData();
+
+		INFO("Getting swapchain...");
+		auto swapchain = render_data.swapChain;
+		if (!swapchain) {
+			ERROR("Cannot find swapchain. Initialization failed!");
+			return;
+		}
+
+		INFO("Getting swapchain desc...");
+		DXGI_SWAP_CHAIN_DESC sd{};
+		if (swapchain->GetDesc(std::addressof(sd)) < 0) {
+			ERROR("IDXGISwapChain::GetDesc failed.");
+			return;
+		}
+
+		device = render_data.forwarder;
+		context = render_data.context;
+
+		INFO("Initializing ImGui...");
+		ImGui::CreateContext();
+		if (!ImGui_ImplWin32_Init(sd.OutputWindow)) {
+			ERROR("ImGui initialization failed (Win32)");
+			return;
+		}
+		if (!ImGui_ImplDX11_Init(device, context)) {
+			ERROR("ImGui initialization failed (DX11)");
+			return;
+		}
+		INFO("ImGui initialized!");
+
+		initialized.store(true);
+
+		WndProcHook::func = reinterpret_cast<WNDPROC>(
+			SetWindowLongPtrA(
+				sd.OutputWindow,
+				GWLP_WNDPROC,
+				reinterpret_cast<LONG_PTR>(WndProcHook::thunk)));
+		if (!WndProcHook::func)
+			ERROR("SetWindowLongPtrA failed!");
+	}
+
+	void Renderer::DXGIPresentHook::thunk(std::uint32_t a_p1)
+	{
+		func(a_p1);
+
+		if (!D3DInitHook::initialized.load())
+			return;
+
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+
+		Renderer::DrawMeters();
+
+		ImGui::EndFrame();
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	}
+
+	// Simple helper function to load an image into a DX11 texture with common settings
+	bool Renderer::LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, std::int32_t& out_width, std::int32_t& out_height)
+	{
+		auto render_manager = RE::BSRenderManager::GetSingleton();
+		if (!render_manager) {
+			ERROR("Cannot find render manager. Initialization failed!");
+			return false;
+		}
+
+		auto render_data = render_manager->GetRuntimeData();
+
 		// Load from disk into a raw RGBA buffer
 		int image_width = 0;
 		int image_height = 0;
@@ -40,7 +134,7 @@ namespace MaxsuDetectionMeter
 		subResource.pSysMem = image_data;
 		subResource.SysMemPitch = desc.Width * 4;
 		subResource.SysMemSlicePitch = 0;
-		DKU_G_DEVICE->CreateTexture2D(&desc, &subResource, &pTexture);
+		device->CreateTexture2D(&desc, &subResource, &pTexture);
 
 		// Create texture view
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -49,7 +143,7 @@ namespace MaxsuDetectionMeter
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = desc.MipLevels;
 		srvDesc.Texture2D.MostDetailedMip = 0;
-		DKU_G_DEVICE->CreateShaderResourceView(pTexture, &srvDesc, out_srv);
+		render_data.forwarder->CreateShaderResourceView(pTexture, &srvDesc, out_srv);
 		pTexture->Release();
 
 		out_width = image_width;
@@ -149,8 +243,8 @@ namespace MaxsuDetectionMeter
 			float filling = 0.f;
 			if (abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) > 0.01f) {
 				float fillingDelta = info->filling.GetTargetFilling() >= 1.0f ?
-                                         ImGui::GetIO().DeltaTime * meterHandler->meterSettings->maxFillingSpeed.get_data() :
-                                         ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) / info->filling.GetCurrentFilling(), float(meterHandler->meterSettings->minFillingSpeed.get_data()), float(meterHandler->meterSettings->maxFillingSpeed.get_data()));
+				                         ImGui::GetIO().DeltaTime * meterHandler->meterSettings->maxFillingSpeed.get_data() :
+				                         ImGui::GetIO().DeltaTime * std::clamp(abs(info->filling.GetTargetFilling() - info->filling.GetCurrentFilling()) / info->filling.GetCurrentFilling(), float(meterHandler->meterSettings->minFillingSpeed.get_data()), float(meterHandler->meterSettings->maxFillingSpeed.get_data()));
 
 				if (info->filling.GetTargetFilling() > info->filling.GetCurrentFilling())
 					filling = info->filling.GetCurrentFilling() + fillingDelta;
@@ -189,7 +283,7 @@ namespace MaxsuDetectionMeter
 
 	void Renderer::DrawMeters()
 	{
-		if (!ShowMeters || GetActiveWindow() != DKU_G_TARGETHWND)
+		if (!ShowMeters)
 			return;
 
 		auto UI = RE::UI::GetSingleton();
@@ -242,12 +336,7 @@ namespace MaxsuDetectionMeter
 
 	void Renderer::MessageCallback(SKSE::MessagingInterface::Message* msg)  //CallBack & LoadTextureFromFile should called after resource loaded.
 	{
-		if (msg->type == SKSE::MessagingInterface::kInputLoaded) {
-			DKUtil::GUI::InitD3D();  //Init d3d11 right before the main menu opened.
-			DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
-
-			INFO("GUI Init!"sv);
-		} else if (msg->type == SKSE::MessagingInterface::kDataLoaded) {
+		if (msg->type == SKSE::MessagingInterface::kDataLoaded && D3DInitHook::initialized) {
 			// Read Texture only after game engine finished load all it renderer resource.
 			std::string textureName[MeterType::kTotal] = { "Meter_Frame.png", "Meter_NonHostile.png", "Meter_Hostile.png" };
 			for (std::int32_t i = MeterType::kFrame; i < MeterType::kTotal; i++) {
@@ -270,16 +359,6 @@ namespace MaxsuDetectionMeter
 			}
 
 			ShowMeters = true;
-		} else if (msg->type == SKSE::MessagingInterface::kPreLoadGame) {
-			DKUtil::GUI::RemoveCallback(FUNC_INFO(DrawMeters));
-
-			auto meterHandler = MeterHandler::GetSingleton();
-			if (meterHandler) {
-				std::scoped_lock lock(meterHandler->m_mutex);  //thread mutex lock
-				meterHandler->meterArr.clear();
-			}
-
-			DKUtil::GUI::AddCallback(FUNC_INFO(DrawMeters));
 		}
 	}
 
@@ -293,6 +372,11 @@ namespace MaxsuDetectionMeter
 
 		g_message->RegisterListener(MessageCallback);
 
+		SKSE::AllocTrampoline(14 * 2);
+
+		stl::write_thunk_call<D3DInitHook>();
+		stl::write_thunk_call<DXGIPresentHook>();
+
 		return true;
 	}
 
@@ -305,5 +389,4 @@ namespace MaxsuDetectionMeter
 	{
 		return ImGui::GetIO().DisplaySize.y / 1080.f;
 	}
-
 }

@@ -9,7 +9,6 @@ namespace MaxsuDetectionMeter
 		ConsoleCommands::Register();
 	}
 
-
 	bool MeterHandler::ShouldDisplayMeter(RE::Actor* a_owner)
 	{
 		auto& data = a_owner->GetActorRuntimeData();
@@ -22,12 +21,10 @@ namespace MaxsuDetectionMeter
 	{
 		if (a_level < 0) {
 			a_level += 100;
-			return a_level = min(max(a_level, 0), 100);
-		}
-		else
+			return a_level = std::min(std::max(a_level, 0), 100);
+		} else
 			return 100;
 	}
-
 
 	std::optional<float> MeterHandler::GetStealthPoint(RE::Actor* a_owner)
 	{
@@ -57,7 +54,6 @@ namespace MaxsuDetectionMeter
 		return result;
 	}
 
-
 	bool MeterHandler::HeadTarckingOnPlayer(RE::Actor* a_owner)
 	{
 		if (!a_owner)
@@ -66,14 +62,13 @@ namespace MaxsuDetectionMeter
 		auto extraTarget = a_owner->extraList.GetByType<RE::ExtraHeadingTarget>();
 		if (extraTarget && extraTarget->target.get())
 			return extraTarget->target.get()->IsPlayerRef();
-		
+
 		auto& data = a_owner->GetActorRuntimeData();
 		if (data.currentProcess && data.currentProcess->high && data.currentProcess->high->pathLookAtTarget.get())
 			return data.currentProcess->high->pathLookAtTarget.get()->IsPlayerRef();
 
 		return false;
 	}
-
 
 	bool MeterHandler::DisplayForNonCombat(RE::Actor* a_owner, const std::int32_t a_level, RE::PlayerCharacter* playerRef) const
 	{
@@ -82,6 +77,6 @@ namespace MaxsuDetectionMeter
 
 		bool discard;
 		return a_level >= meterSettings->minTriggerLevel.get_data() && a_owner->AsActorState()->GetSitSleepState() != RE::SIT_SLEEP_STATE::kIsSitting &&
-			(a_owner->HasLineOfSight(playerRef, discard) || HeadTarckingOnPlayer(a_owner));
+		       (a_owner->HasLineOfSight(playerRef, discard) || HeadTarckingOnPlayer(a_owner));
 	}
 }

@@ -74,7 +74,7 @@ namespace MaxsuDetectionMeter
 			return false;
 
 		//Update AlphaInfo
-		a_stealthPoints.has_value() && a_stealthPoints.value() > 0.f ? this->alpha.SetFadeAction(FadeType::KFadeIn), this->alpha.SetValue(max(155, this->alpha.GetCurrentValue())) : this->alpha.SetFadeAction(FadeType::KFadeOut);
+		a_stealthPoints.has_value() && a_stealthPoints.value() > 0.f ? this->alpha.SetFadeAction(FadeType::KFadeIn), this->alpha.SetValue(std::max(155, this->alpha.GetCurrentValue())) : this->alpha.SetFadeAction(FadeType::KFadeOut);
 
 		//Update Flashing
 		if (a_stealthPoints.has_value() && a_stealthPoints.value() >= 99.9f)
