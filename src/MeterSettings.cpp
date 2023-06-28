@@ -13,9 +13,9 @@ namespace MaxsuDetectionMeter
 		MainConfig.Bind(flashSpeed, 550.f);
 		MainConfig.Bind(flashScale, 0.25f);
 		MainConfig.Bind(flashShift, 36);
-		MainConfig.Bind(minFillingSpeed, 0.35f);
-		MainConfig.Bind(maxFillingSpeed, 0.95f);
-		MainConfig.Bind(minTriggerLevel, 25);
+		MainConfig.Bind<0.f, 1.f>(minFillingSpeed, 0.35f);
+		MainConfig.Bind<0.f, 1.f>(maxFillingSpeed, 0.95f);
+		MainConfig.Bind<0, 100>(minTriggerLevel, 25);
 		MainConfig.Bind(radiusX, 310.f);
 		MainConfig.Bind(radiusY, 310.f);
 		MainConfig.Bind(centerOffsetX, 0);
@@ -23,17 +23,17 @@ namespace MaxsuDetectionMeter
 
 		MainConfig.Load();
 
-		PrintSettingValue(fadeSpeed.get_key(), *fadeSpeed);
-		PrintSettingValue(flashSpeed.get_key(), *flashSpeed);
-		PrintSettingValue(flashScale.get_key(), *flashScale);
-		PrintSettingValue(flashShift.get_key(), *flashShift);
-		PrintSettingValue(minFillingSpeed.get_key(), *minFillingSpeed);
-		PrintSettingValue(maxFillingSpeed.get_key(), *maxFillingSpeed);
-		PrintSettingValue(minTriggerLevel.get_key(), *minTriggerLevel);
-		PrintSettingValue(radiusX.get_key(), *radiusX);
-		PrintSettingValue(radiusY.get_key(), *radiusY);
-		PrintSettingValue(centerOffsetX.get_key(), *centerOffsetX);
-		PrintSettingValue(centerOffsetY.get_key(), *centerOffsetY);
+		PrintSettingValue(fadeSpeed);
+		PrintSettingValue(flashSpeed);
+		PrintSettingValue(flashScale);
+		PrintSettingValue(flashShift);
+		PrintSettingValue(minFillingSpeed);
+		PrintSettingValue(maxFillingSpeed);
+		PrintSettingValue(minTriggerLevel);
+		PrintSettingValue(radiusX);
+		PrintSettingValue(radiusY);
+		PrintSettingValue(centerOffsetX);
+		PrintSettingValue(centerOffsetY);
 
 		ScalingForResolution();
 	}

@@ -32,16 +32,16 @@ namespace MaxsuDetectionMeter
 		func();
 
 		INFO("D3DInit Hooked!");
-		auto render_manager = RE::BSRenderManager::GetSingleton();
+		auto render_manager = RE::BSGraphics::Renderer::GetSingleton();
 		if (!render_manager) {
 			ERROR("Cannot find render manager. Initialization failed!");
 			return;
 		}
 
-		auto render_data = render_manager->GetRuntimeData();
+		auto render_data = render_manager->data;
 
 		INFO("Getting swapchain...");
-		auto swapchain = render_data.swapChain;
+		auto swapchain = render_data.renderWindows->swapChain;
 		if (!swapchain) {
 			ERROR("Cannot find swapchain. Initialization failed!");
 			return;
@@ -101,13 +101,13 @@ namespace MaxsuDetectionMeter
 	// Simple helper function to load an image into a DX11 texture with common settings
 	bool Renderer::LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, std::int32_t& out_width, std::int32_t& out_height)
 	{
-		auto render_manager = RE::BSRenderManager::GetSingleton();
+		auto render_manager = RE::BSGraphics::Renderer::GetSingleton();
 		if (!render_manager) {
 			ERROR("Cannot find render manager. Initialization failed!");
 			return false;
 		}
 
-		auto render_data = render_manager->GetRuntimeData();
+		auto render_data = render_manager->data;
 
 		// Load from disk into a raw RGBA buffer
 		int image_width = 0;
