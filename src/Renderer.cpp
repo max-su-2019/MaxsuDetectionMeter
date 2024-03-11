@@ -3,6 +3,7 @@
 
 #include <d3d11.h>
 
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
 
@@ -11,7 +12,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image.h"
 
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
 
 namespace MaxsuDetectionMeter
@@ -67,6 +67,11 @@ namespace MaxsuDetectionMeter
 			ERROR("ImGui initialization failed (DX11)");
 			return;
 		}
+
+		RECT rect = { 0, 0, 0, 0 };
+		GetClientRect(sd.OutputWindow, &rect);
+		ImGui::GetIO().DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
+
 		INFO("ImGui initialized!");
 
 		initialized.store(true);
@@ -80,22 +85,21 @@ namespace MaxsuDetectionMeter
 			ERROR("SetWindowLongPtrA failed!");
 	}
 
-	void Renderer::DXGIPresentHook::thunk(std::uint32_t a_p1)
+	void Renderer::MenuPresentHook::Hook_PostDisplay(RE::IMenu* Menu)
 	{
-		func(a_p1);
+		if (D3DInitHook::initialized.load()) {
+			ImGui_ImplDX11_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
 
-		if (!D3DInitHook::initialized.load())
-			return;
+			Renderer::DrawMeters();
 
-		ImGui_ImplDX11_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+			ImGui::EndFrame();
+			ImGui::Render();
+			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());  // dear imgui defaults to RT slot 0
+		}
 
-		Renderer::DrawMeters();
-
-		ImGui::EndFrame();
-		ImGui::Render();
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+		func(Menu);
 	}
 
 	// Simple helper function to load an image into a DX11 texture with common settings
@@ -375,7 +379,7 @@ namespace MaxsuDetectionMeter
 		SKSE::AllocTrampoline(14 * 2);
 
 		stl::write_thunk_call<D3DInitHook>();
-		stl::write_thunk_call<DXGIPresentHook>();
+		MenuPresentHook::Install();
 
 		return true;
 	}
@@ -389,4 +393,5 @@ namespace MaxsuDetectionMeter
 	{
 		return ImGui::GetIO().DisplaySize.y / 1080.f;
 	}
+
 }

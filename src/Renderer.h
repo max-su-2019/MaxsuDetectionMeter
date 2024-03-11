@@ -21,13 +21,18 @@ namespace MaxsuDetectionMeter
 			static inline std::atomic<bool> initialized = false;
 		};
 
-		struct DXGIPresentHook
+		class MenuPresentHook : public RE::HUDMenu
 		{
-			static void thunk(std::uint32_t a_p1);
-			static inline REL::Relocation<decltype(thunk)> func;
+		public:
+			static void Install()
+			{
+				REL::Relocation<std::uintptr_t> vtbl{ VTABLE[0] };
+				func = vtbl.write_vfunc(0x6, &func);
+			}
 
-			static constexpr auto id = REL::RelocationID(75461, 77246);
-			static constexpr auto offset = REL::Offset(0x9);
+		private:
+			static void Hook_PostDisplay(RE::IMenu* Menu);
+			static inline REL::Relocation<decltype(PostDisplay)> func;
 		};
 
 	private:
