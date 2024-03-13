@@ -40,4 +40,20 @@ namespace MaxsuDetectionMeter
 		Integer centerOffsetX = { "CenterOffsetX", "Display" };
 		Integer centerOffsetY = { "CenterOffsetY", "Display" };
 	};
+
+	using EventResult = RE::BSEventNotifyControl;
+
+	class SettingsHandler : public RE::BSTEventSink<SKSE::ModCallbackEvent>
+	{
+		static constexpr char modName[] = "MaxsuDetectionMeter";
+
+	public:
+		static bool Register();
+
+		virtual EventResult ProcessEvent(const SKSE::ModCallbackEvent* a_event, RE::BSTEventSource<SKSE::ModCallbackEvent>* a_eventSource);
+
+	private:
+		SettingsHandler() = default;
+	};
+
 }

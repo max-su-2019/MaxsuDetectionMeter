@@ -13,7 +13,7 @@ namespace MaxsuDetectionMeter
 		struct D3DInitHook
 		{
 			static void thunk();
-			static inline REL::Relocation<decltype(thunk)> func;
+			static inline REL::Relocation<decltype(&thunk)> func;
 
 			static constexpr auto id = REL::RelocationID(75595, 77226);
 			static constexpr auto offset = REL::VariantOffset(0x9, 0x275, 0x00);  // VR unknown
@@ -27,12 +27,12 @@ namespace MaxsuDetectionMeter
 			static void Install()
 			{
 				REL::Relocation<std::uintptr_t> vtbl{ VTABLE[0] };
-				func = vtbl.write_vfunc(0x6, &func);
+				func = vtbl.write_vfunc(0x6, &Hook_PostDisplay);
 			}
 
 		private:
 			static void Hook_PostDisplay(RE::IMenu* Menu);
-			static inline REL::Relocation<decltype(PostDisplay)> func;
+			static inline REL::Relocation<decltype(&PostDisplay)> func;
 		};
 
 	private:

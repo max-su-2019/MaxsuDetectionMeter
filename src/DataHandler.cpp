@@ -6,6 +6,7 @@ namespace MaxsuDetectionMeter
 	MeterHandler::MeterHandler()
 	{
 		meterSettings = std::make_unique<MeterSettings>();
+		SettingsHandler::Register();
 		ConsoleCommands::Register();
 	}
 

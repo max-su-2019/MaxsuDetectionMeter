@@ -1,5 +1,6 @@
 #include "MeterSettings.h"
 #include "DKUtil/Config.hpp"
+#include "DataHandler.h"
 #include "Renderer.h"
 
 namespace MaxsuDetectionMeter
@@ -56,4 +57,30 @@ namespace MaxsuDetectionMeter
 		ScalingForResolution();
 		DEBUG("Reload Configuration Settings!");
 	}
+
+	bool SettingsHandler::Register()
+	{
+		static SettingsHandler singleton;
+		auto eventSource = SKSE::GetModCallbackEventSource();
+		if (!eventSource) {
+			ERROR("EventSource not found!");
+			return false;
+		}
+
+		eventSource->AddEventSink(&singleton);
+
+		INFO("Register {}", typeid(singleton).name());
+
+		return true;
+	}
+
+	EventResult SettingsHandler::ProcessEvent(const SKSE::ModCallbackEvent* a_event, RE::BSTEventSource<SKSE::ModCallbackEvent>* a_eventSource)
+	{
+		if (a_event && _strcmpi(a_event->eventName.c_str(), "dmenu_updateSettings") == 0 && _strcmpi(a_event->strArg.c_str(), modName) == 0) {
+			MeterHandler::GetSingleton()->meterSettings->Reload();
+		}
+
+		return EventResult::kContinue;
+	}
+
 }
